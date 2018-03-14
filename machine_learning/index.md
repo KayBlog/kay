@@ -1,1 +1,3 @@
-## welcome to machine learning
+[<< 返回到主页](../index.md)
+
+这里将介绍机器学习和概率统计的博客文章

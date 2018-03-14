@@ -1,1 +1,3 @@
-## welcome to data structures
+[<< 返回到主页](../index.md)
+
+这里将介绍数据结构和算法的博客文章
