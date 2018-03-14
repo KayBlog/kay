@@ -9,6 +9,8 @@ Thank you.
 4. [计算几何与图形学](cg/index.md)
 5. [游戏相关](game/index.md)
 6. [机器学习与概率统计](machine_learning/index.md)
+7. [基础服务端业务框架](server/index.md)
+8. [数据库](database/index.md)
 
 ## 建议初学者学习流程：
 
@@ -17,3 +19,4 @@ Thank you.
 * 学习图形学
 * 学习游戏相关
 * 另外，计算几何、机器学习和概率统计可后期学习
+* 数据库和服务端了解一下即可
