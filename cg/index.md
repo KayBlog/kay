@@ -8,7 +8,3 @@
 4. [uv展开](uv.md)
 5. [材质系统](material.md)
 6. [图形库OpenGL](opengl.md)
-7. [凸包](convex.md)
-8. [多边形三角化](triangular.md)
-9. [中轴提取](center_axis.md)
-10. [中轴膨胀](center_inflate.md)
