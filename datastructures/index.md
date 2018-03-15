@@ -6,3 +6,4 @@
 1. [HashMap实现](hash_table.md)
 2. [并查集](union_find.md)
 3. [堆排序](heap.md)
+4. [树](tree.md)
