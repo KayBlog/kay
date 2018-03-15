@@ -11,6 +11,7 @@ Thank you.
 6. [机器学习与概率统计](machine_learning/index.md)
 7. [基础服务端业务框架](server/index.md)
 8. [数据库](database/index.md)
+9. [其他](other/index.md)
 
 ## 建议初学者学习流程：
 
