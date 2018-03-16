@@ -33,24 +33,137 @@ OpenGL的初始化分两个阶段：
 GLFW：创建OpenGL窗口。类似有GLUT，FREEGLUT。  
     GLFW有哪些优势？glut太老了，最后一个版本还是90年代的。freeglut完全兼容glut，算是glut的代替品，功能齐全，但是bug太多，稳定性也不好(据说没使用过)，GLFW应运而生    
 
-GLEW：对OpenGL在不同平台下做一层封装，通过宏来定义通用接口，开发者只需调用即可。  
-从而不依赖于操作系统，不依赖具体的显卡实现，达到跨平台的效果。  
+GLEW：对OpenGL在不同平台下做一层封装，开发者只需调用即可。从而不依赖于操作系统，不依赖具体的显卡实现，达到跨平台的效果。  
 
-## **1. 基础骨架**
+接下里的代码释义依赖于GL，GLEW，GLFW库
 
-## **2. GLSL基础**
+## **基础骨架**
 
-## **3. 贴图**
+#### 1.1 窗口创建与上下文设置
+代码片段
+```
+    glfwInit();
+    GLFWwindow* gWindow = glfwCreateWindow((int)SCREEN_SIZE.x, (int)SCREEN_SIZE.y, "OpenGL Tutorial", NULL, NULL);
+    glfwMakeContextCurrent(gWindow);
+```
+1. 首先初始化glfw
+2. 创建窗口，参数为 窗口尺寸，窗口标题等
+3. 设置上下文，OpenGL渲染输出到指定的窗口
 
-## **4. 矩阵**
+#### 1.2 定位OpenGL函数
+代码片段
+```
+    glewInit();
+```
+1. 初始化glew，确定所需要的OpenGL函数
 
-## **5. 相机**
+#### 1.3 初始化模型等资源
+绘制一个简单的三角形，其初始化过程如下：
 
-## **6. 资源实例化**
+初始化 Program：   
+1. 初始化Shader
+```
+a 根据shaderType(顶点着色器还是片段着色器)创建shader id
+GLint shader_object = glCreateShader(shaderType);
+b 根据shaderCode着色器文件路径，将代码指定到 shader_object 里
+const char* code = shaderCode.c_str();
+glShaderSource(shader_object, 1, (const GLchar**)&code, NULL);
+c 对着色器代码编译
+glCompileShader(shader_object);
+d 检测着色器编译状态
+GLint status;
+glGetShaderiv(shader_object, GL_COMPILE_STATUS, &status);
+```
 
-## **7. 漫反射光照**
+2. 初始化 Program
+```
+a 创建 Program id
+GLint _object = glCreateProgram();
+b 顶点和片段着色器挂载到 program上
+glAttachShader(_object, vert_shader_object);
+glAttachShader(_object, frag_shader_object);
+c 将着色器链接到一起
+glLinkProgram(_object);
+d 卸载着色器
+glDetachShader(_object, vert_shader_object);
+glDetachShader(_object, frag_shader_object);
+e 检测状态，判断有无错误
+GLint status;
+glGetProgramiv(_object, GL_LINK_STATUS, &status);
+```
 
-## **8. 更多光照**
+3. 初始化Triangle(GLuint gVAO = 0; GLuint gVBO = 0;)
+```
+glGenVertexArrays(1, &gVAO);
+glBindVertexArray(gVAO);
+glGenBuffers(1, &gVBO);
+glBindBuffer(GL_ARRAY_BUFFER, gVBO);
+GLfloat vertexData[] = {
+    //  X     Y     Z
+     0.0f, 0.8f, 0.0f,
+    -0.8f,-0.8f, 0.0f,
+     0.8f,-0.8f, 0.0f,
+};
+glBufferData(GL_ARRAY_BUFFER, sizeof(vertexData), vertexData, GL_STATIC_DRAW);
+glEnableVertexAttribArray(gProgram->attrib("vert"));
+glVertexAttribPointer(gProgram->attrib("vert"), 3, GL_FLOAT, GL_FALSE, 0, NULL);
+glBindBuffer(GL_ARRAY_BUFFER, 0);
+glBindVertexArray(0);
+```
+a 指定可用的gVAO
+b 绑定gVAO
+c 指定可用的gVBO
+d 绑定gVBO，且为GL_ARRAY_BUFFER
+e 三角形顶点数据
+f 将gVBO大小设置为sizeof(vertexData)，并将顶点数据拷贝到gVBO显存，且是GL_STATIC_DRAW静态
+g 开启vert位置，并指定该位置所需数据类型以及个数
+h 重置vbo
+i 重置vao
+
+4. 渲染循环
+```
+while(!glfwWindowShouldClose(gWindow))
+{
+    glfwPollEvents();
+    Render();
+}
+```
+a 处理输入事件，鼠标，键盘等
+b 渲染物体
+
+4.1 渲染
+```
+glClearColor(0, 0, 0, 1);
+glClear(GL_COLOR_BUFFER_BIT);
+glUseProgram(gProgram->object());    
+glBindVertexArray(gVAO);
+glDrawArrays(GL_TRIANGLES, 0, 3);
+glBindVertexArray(0);
+glUseProgram(0);
+glfwSwapBuffers(gWindow);
+```
+a 设置窗口背景色
+b 清空颜色缓冲区
+c 使用 program
+d 绑定gVAO
+e 提交绘制指定
+f 重置vao
+g 重置program
+h 刷新帧缓冲区到窗口
+
+## **GLSL基础**
+
+## **贴图**
+
+## **矩阵**
+
+## **相机**
+
+## **资源实例化**
+
+## **漫反射光照**
+
+## **更多光照**
 
     
 
