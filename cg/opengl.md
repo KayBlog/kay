@@ -37,7 +37,7 @@ GLEW：对OpenGL在不同平台下做一层封装，开发者只需调用即可�
 
 接下里的代码释义依赖于GL，GLEW，GLFW库
 
-## **基础骨架**
+## **1. 基础骨架**
 
 #### 1.1 窗口创建与上下文设置
 代码片段
@@ -141,14 +141,14 @@ glBindVertexArray(0);
 glUseProgram(0);
 glfwSwapBuffers(gWindow);
 ```
-a 设置窗口背景色  
-b 清空颜色缓冲区  
-c 使用 program  
-d 绑定gVAO  
-e 提交绘制指定  
-f 重置vao  
-g 重置program  
-h 刷新帧缓冲区到窗口  
+a. 设置窗口背景色  
+b. 清空颜色缓冲区  
+c. 使用 program  
+d. 绑定gVAO  
+e. 提交绘制指定  
+f. 重置vao  
+g. 重置program  
+h. 刷新帧缓冲区到窗口  
 
 ### 骨架小结
 1. 初始化glfw和glew
@@ -163,7 +163,33 @@ h 刷新帧缓冲区到窗口
         6. 重复上述步骤，只有所有物体都被处理
     3. 刷新缓冲区
 
-### 核心函数释义
+### 核心函数
+1. glClear()
+2. glUseProgram()
+    1. glCreateProgram()
+    2. glAttachShader()
+        1. glCreateShader()
+        2. glShaderSource()
+        3. glCompileShader()
+        4. glGetShaderiv()
+    3. glLinkProgram()
+    4. glDetachShader()
+    5. glGetProgramiv()
+    6. glGetAttribLocation()
+    7. glGetUniformLocation()
+3. glBindVertexArray()
+    1. glGenVertexArrays()
+    2. glGenBuffers()
+    3. glBindBuffer()
+    4. glBufferData()
+    5. glEnableVertexAttribArray()
+    6. glVertexAttribPointer()
+4. glDrawArrays()
+5. glfwSwapBuffers()
+
+### 相关概率
+1. VAO 与 VBO：vao可看成是vbo的数组形式，每个vbo存储模型数据
+2. program 和 shader: program至少需要挂载顶点和片段shader。shader代码中的参数，program编译后，可以获取其索引并传值。shader里模型每一个顶点数据，要通过glEnableVertexAttribArray和glVertexAttribPointer指定
 
 
 ## **GLSL基础**
