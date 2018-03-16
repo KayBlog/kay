@@ -1,12 +1,5 @@
 [<< 返回到上级](index.md)
 
-<font face="黑体">我是黑体字</font>
-<font face="微软雅黑">我是微软雅黑</font>
-<font face="STCAIYUN">我是华文彩云</font>
-<font color=#0099ff size=7 face="黑体">color=#0099ff size=72 face="黑体"</font>
-<font color=#00ffff size=72>color=#00ffff</font>
-<font color=gray size=72>color=gray</font>
-
 这里将介绍OpenGL API的使用博客文章，开发OpenGL围绕下面几点展开
 
 0. 认识OpenGL和相关扩展库
@@ -22,7 +15,7 @@
 ## **0. 认识OpenGL和相关扩展库**
 
 &ensp;&ensp;OpenGL是跨平台的开源图形库。当你在使用OpenGL之前，需要对其进行初始化。由于跨平台， 则初始化没有一个固定的标准。  
-OpenGL的初始化分两个阶段：  
+&ensp;&ensp;OpenGL的初始化分两个阶段：  
 第一个阶段：  
     创建一个OpenGL上下文环境。
     这个上下文环境存储了所有与OpenGL相关的状态（OpenGL是一个状态机）。
@@ -33,12 +26,13 @@ OpenGL的初始化分两个阶段：
     因为OpenGL只是一个标准，具体的实现是由驱动开发商针对特定显卡实现的。  
     由于OpenGL驱动版本众多，它大多数函数的位置都无法在编译时确定下来，需要在运行时查询。
     任务就落在了开发者身上，开发者需要在运行时获取函数地址并将其保存在一个函数指针中供以后使用，取得地址的方法因平台而异。  
+
 基于上面两个阶段，使用OpenGL开发时，引入两个扩展库GLFW和GLEW：   
-    GLFW：创建OpenGL窗口。类似有GLUT，FREEGLUT。  
-    GLFW有哪些优势？glut太老了，最后一个版本还是90年代的。  
-    freeglut完全兼容glut，算是glut的代替品，功能齐全，但是bug太多，稳定性也不好(据说没使用过)，GLFW应运而生  
-    GLEW：对OpenGL在不同平台下做一层封装，通过宏来定义通用接口，开发者只需调用即可。  
-    从而不依赖于操作系统，不依赖具体的显卡实现，达到跨平台的效果。  
+GLFW：创建OpenGL窗口。类似有GLUT，FREEGLUT。  
+&ensp;&ensp;GLFW有哪些优势？glut太老了，最后一个版本还是90年代的。  
+freeglut完全兼容glut，算是glut的代替品，功能齐全，但是bug太多，稳定性也不好(据说没使用过)，GLFW应运而生    
+GLEW：对OpenGL在不同平台下做一层封装，通过宏来定义通用接口，开发者只需调用即可。  
+从而不依赖于操作系统，不依赖具体的显卡实现，达到跨平台的效果。  
 
 ## **1. 基础骨架**
 
