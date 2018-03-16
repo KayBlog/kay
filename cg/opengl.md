@@ -59,22 +59,22 @@ GLEW：对OpenGL在不同平台下做一层封装，开发者只需调用即可�
 
 #### 1.3 初始化模型等资源
 绘制一个简单的三角形，其初始化过程如下：  
-初始化 Program：   
-1.3.1 初始化Shader
+**1.3.1 初始化 Program gProgram**
+**1.3.1.1 初始化Shader**
 ```
-a 根据shaderType(顶点着色器还是片段着色器)创建shader id
 GLint shader_object = glCreateShader(shaderType);
-b 根据shaderCode着色器文件路径，将代码指定到 shader_object 里
 const char* code = shaderCode.c_str();
 glShaderSource(shader_object, 1, (const GLchar**)&code, NULL);
-c 对着色器代码编译
 glCompileShader(shader_object);
-d 检测着色器编译状态
 GLint status;
 glGetShaderiv(shader_object, GL_COMPILE_STATUS, &status);
 ```
+a 根据shaderType(顶点着色器还是片段着色器)创建shader id  
+b 根据shaderCode着色器文件路径，将代码指定到 shader_object 里  
+c 对着色器代码编译  
+d 检测着色器编译状态  
 
-1.3.2 初始化 Program
+**1.3.1.2 初始化 Program**
 ```
 a 创建 Program id
 GLint _object = glCreateProgram();
@@ -91,7 +91,7 @@ GLint status;
 glGetProgramiv(_object, GL_LINK_STATUS, &status);
 ```
 
-1.3.3 初始化Triangle(GLuint gVAO = 0; GLuint gVBO = 0;)
+**1.3.2 初始化Triangle(GLuint gVAO = 0; GLuint gVBO = 0;)**
 ```
 glGenVertexArrays(1, &gVAO);
 glBindVertexArray(gVAO);
@@ -119,7 +119,7 @@ g 开启vert位置，并指定该位置所需数据类型以及个数
 h 重置vbo  
 i 重置vao  
 
-1.3.4 渲染循环
+**1.3.3 渲染循环**
 ```
 while(!glfwWindowShouldClose(gWindow))
 {
@@ -128,9 +128,9 @@ while(!glfwWindowShouldClose(gWindow))
 }
 ```
 a 处理输入事件，鼠标，键盘等  
-b 渲染物体
+b 渲染物体  
 
-1.3.4.1 渲染
+**1.3.3.1 渲染Render()**
 ```
 glClearColor(0, 0, 0, 1);
 glClear(GL_COLOR_BUFFER_BIT);
@@ -149,6 +149,22 @@ e 提交绘制指定
 f 重置vao  
 g 重置program  
 h 刷新帧缓冲区到窗口  
+
+### 骨架小结
+1. 初始化glfw和glew
+2. 渲染循环
+    1. 处理事件
+    2. 渲染所有物体
+        1. Program use(事先创建好)
+        2. VAO绑定 (根据模型数据事先设定好)
+        3. 提交绘制指令
+        4. 重置vao
+        5. 重置program
+        6. 重复上述步骤，只有所有物体都被处理
+    3. 刷新缓冲区
+
+### 核心函数释义
+
 
 ## **GLSL基础**
 
