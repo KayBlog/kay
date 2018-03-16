@@ -195,10 +195,12 @@ h. 刷新帧缓冲区到窗口
 **1.6 一般说明**
 1. VAO 与 VBO：vao可看成是vbo的数组形式，每个vbo存储模型数据。另还有VIO 顶点索引模式。绑定vbo后，需要指定如何去解析数据块。
 2. program 和 shader: program至少需要挂载顶点和片段shader。shader代码中的参数，program编译后，可以获取其索引并传值。shader里模型每一个顶点数据，要通过glEnableVertexAttribArray和glVertexAttribPointer指定  
-[转到骨架](#1)  
----------------------  
+
+[转到骨架](#1)   
+
 <span id="2"></span>  
-## **2. GLSL基础**
+## **2. GLSL基础**  
+
 作为OpenGL着色器语言，glsl代码格式类似于c代码。在此，主要是简单介绍一下glsl，以及在OpenGL如何使用以及需要注意的地方  
 
 着色器有几种，根据OpenGL文档，主要是Vertex Shader顶点着色器， Tessellation Shader曲面细分着色器，Geometry Shader几何着色器，Fragment Shader着色器。其中曲面细分和几何着色器是可选项，顶点着色器和片段着色器是必须项，一般我们只用到这两个就可以。  
