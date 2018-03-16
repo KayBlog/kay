@@ -110,15 +110,15 @@ glVertexAttribPointer(gProgram->attrib("vert"), 3, GL_FLOAT, GL_FALSE, 0, NULL);
 glBindBuffer(GL_ARRAY_BUFFER, 0);
 glBindVertexArray(0);
 ```
-a 指定可用的gVAO
-b 绑定gVAO
-c 指定可用的gVBO
-d 绑定gVBO，且为GL_ARRAY_BUFFER
-e 三角形顶点数据
-f 将gVBO大小设置为sizeof(vertexData)，并将顶点数据拷贝到gVBO显存，且是GL_STATIC_DRAW静态
-g 开启vert位置，并指定该位置所需数据类型以及个数
-h 重置vbo
-i 重置vao
+a 指定可用的gVAO  
+b 绑定gVAO  
+c 指定可用的gVBO  
+d 绑定gVBO，且为GL_ARRAY_BUFFER  
+e 三角形顶点数据  
+f 将gVBO大小设置为sizeof(vertexData)  ，并将顶点数据拷贝到gVBO显存，且是GL_STATIC_DRAW静态  
+g 开启vert位置，并指定该位置所需数据类型以及个数  
+h 重置vbo  
+i 重置vao  
 
 4. 渲染循环
 ```
@@ -128,7 +128,7 @@ while(!glfwWindowShouldClose(gWindow))
     Render();
 }
 ```
-a 处理输入事件，鼠标，键盘等
+a 处理输入事件，鼠标，键盘等  
 b 渲染物体
 
 4.1 渲染
@@ -142,14 +142,14 @@ glBindVertexArray(0);
 glUseProgram(0);
 glfwSwapBuffers(gWindow);
 ```
-a 设置窗口背景色
-b 清空颜色缓冲区
-c 使用 program
-d 绑定gVAO
-e 提交绘制指定
-f 重置vao
-g 重置program
-h 刷新帧缓冲区到窗口
+a 设置窗口背景色  
+b 清空颜色缓冲区  
+c 使用 program  
+d 绑定gVAO  
+e 提交绘制指定  
+f 重置vao  
+g 重置program  
+h 刷新帧缓冲区到窗口  
 
 ## **GLSL基础**
 
