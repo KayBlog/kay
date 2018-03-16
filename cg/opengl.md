@@ -191,9 +191,9 @@ h. 刷新帧缓冲区到窗口
 
 **1.6 一般说明**
 1. VAO 与 VBO：vao可看成是vbo的数组形式，每个vbo存储模型数据。另还有VIO 顶点索引模式
-2. program 和 shader: program至少需要挂载顶点和片段shader。shader代码中的参数，program编译后，可以获取其索引并传值。shader里模型每一个顶点数据，要通过glEnableVertexAttribArray和glVertexAttribPointer指定
-[转到开头](#1)
----------------------
+2. program 和 shader: program至少需要挂载顶点和片段shader。shader代码中的参数，program编译后，可以获取其索引并传值。shader里模型每一个顶点数据，要通过glEnableVertexAttribArray和glVertexAttribPointer指定  
+[转到骨架](#1)  
+---------------------  
 
 ## **2. GLSL基础**
 
