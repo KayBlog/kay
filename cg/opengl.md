@@ -55,7 +55,7 @@ GLEW：对OpenGL在不同平台下做一层封装，开发者只需调用即可�
 ```
     glewInit();
 ```
-1.2.1 初始化glew，确定所需要的OpenGL函数
+a. 初始化glew，确定所需要的OpenGL函数
 
 #### 1.3 初始化模型等资源
 绘制一个简单的三角形，其初始化过程如下：  
@@ -69,27 +69,27 @@ glCompileShader(shader_object);
 GLint status;
 glGetShaderiv(shader_object, GL_COMPILE_STATUS, &status);
 ```
-a 根据shaderType(顶点着色器还是片段着色器)创建shader id  
-b 根据shaderCode着色器文件路径，将代码指定到 shader_object 里  
-c 对着色器代码编译  
-d 检测着色器编译状态  
+a. 根据shaderType(顶点着色器还是片段着色器)创建shader id  
+b. 根据shaderCode着色器文件路径，将代码指定到 shader_object 里  
+c. 对着色器代码编译  
+d. 检测着色器编译状态  
 
 **1.3.1.2 初始化 Program**
 ```
-a 创建 Program id
 GLint _object = glCreateProgram();
-b 顶点和片段着色器挂载到 program上
 glAttachShader(_object, vert_shader_object);
 glAttachShader(_object, frag_shader_object);
-c 将着色器链接到一起
 glLinkProgram(_object);
-d 卸载着色器
 glDetachShader(_object, vert_shader_object);
 glDetachShader(_object, frag_shader_object);
-e 检测状态，判断有无错误
 GLint status;
 glGetProgramiv(_object, GL_LINK_STATUS, &status);
 ```
+a. 创建 Program id  
+b. 顶点和片段着色器挂载到 program上  
+c. 将着色器链接到一起  
+d. 卸载着色器  
+e. 检测状态，判断有无错误  
 
 **1.3.2 初始化Triangle(GLuint gVAO = 0; GLuint gVBO = 0;)**
 ```
@@ -109,15 +109,15 @@ glVertexAttribPointer(gProgram->attrib("vert"), 3, GL_FLOAT, GL_FALSE, 0, NULL);
 glBindBuffer(GL_ARRAY_BUFFER, 0);
 glBindVertexArray(0);
 ```
-a 指定可用的gVAO  
-b 绑定gVAO  
-c 指定可用的gVBO  
-d 绑定gVBO，且为GL_ARRAY_BUFFER  
-e 三角形顶点数据  
-f 将gVBO大小设置为sizeof(vertexData)  ，并将顶点数据拷贝到gVBO显存，且是GL_STATIC_DRAW静态  
-g 开启vert位置，并指定该位置所需数据类型以及个数  
-h 重置vbo  
-i 重置vao  
+a. 指定可用的gVAO  
+b. 绑定gVAO  
+c. 指定可用的gVBO  
+d. 绑定gVBO，且为GL_ARRAY_BUFFER  
+e. 三角形顶点数据  
+f. 将gVBO大小设置为sizeof(vertexData)  ，并将顶点数据拷贝到gVBO显存，且是GL_STATIC_DRAW静态  
+g. 开启vert位置，并指定该位置所需数据类型以及个数  
+h. 重置vbo  
+i. 重置vao  
 
 **1.3.3 渲染循环**
 ```
@@ -127,8 +127,8 @@ while(!glfwWindowShouldClose(gWindow))
     Render();
 }
 ```
-a 处理输入事件，鼠标，键盘等  
-b 渲染物体  
+a. 处理输入事件，鼠标，键盘等  
+b. 渲染物体  
 
 **1.3.3.1 渲染Render()**
 ```
@@ -150,7 +150,7 @@ f. 重置vao
 g. 重置program  
 h. 刷新帧缓冲区到窗口  
 
-### 骨架小结
+**1.4 骨架小结**
 1. 初始化glfw和glew
 2. 渲染循环
     1. 处理事件
@@ -163,7 +163,7 @@ h. 刷新帧缓冲区到窗口
         6. 重复上述步骤，只有所有物体都被处理
     3. 刷新缓冲区
 
-### 核心函数
+**1.5 核心函数**
 1. glClear()
 2. glUseProgram()
     1. glCreateProgram()
@@ -187,24 +187,23 @@ h. 刷新帧缓冲区到窗口
 4. glDrawArrays()
 5. glfwSwapBuffers()
 
-### 相关概率
-1. VAO 与 VBO：vao可看成是vbo的数组形式，每个vbo存储模型数据
+**1.6 一般说明**
+1. VAO 与 VBO：vao可看成是vbo的数组形式，每个vbo存储模型数据。另还有VIO 顶点索引模式
 2. program 和 shader: program至少需要挂载顶点和片段shader。shader代码中的参数，program编译后，可以获取其索引并传值。shader里模型每一个顶点数据，要通过glEnableVertexAttribArray和glVertexAttribPointer指定
 
+## **2. GLSL基础**
 
-## **GLSL基础**
+## **3. 贴图**
 
-## **贴图**
+## **4. 矩阵**
 
-## **矩阵**
+## **5. 相机**
 
-## **相机**
+## **6. 资源实例化**
 
-## **资源实例化**
+## **7. 漫反射光照**
 
-## **漫反射光照**
-
-## **更多光照**
+## **8. 更多光照**
 
     
 
