@@ -46,22 +46,21 @@ GLEW：对OpenGL在不同平台下做一层封装，开发者只需调用即可�
     GLFWwindow* gWindow = glfwCreateWindow((int)SCREEN_SIZE.x, (int)SCREEN_SIZE.y, "OpenGL Tutorial", NULL, NULL);
     glfwMakeContextCurrent(gWindow);
 ```
-1. 首先初始化glfw
-2. 创建窗口，参数为 窗口尺寸，窗口标题等
-3. 设置上下文，OpenGL渲染输出到指定的窗口
+1.1.1 首先初始化glfw
+1.1.2 创建窗口，参数为 窗口尺寸，窗口标题等
+1.1.3 设置上下文，OpenGL渲染输出到指定的窗口
 
 #### 1.2 定位OpenGL函数
 代码片段
 ```
     glewInit();
 ```
-1. 初始化glew，确定所需要的OpenGL函数
+1.2.1 初始化glew，确定所需要的OpenGL函数
 
 #### 1.3 初始化模型等资源
-绘制一个简单的三角形，其初始化过程如下：
-
+绘制一个简单的三角形，其初始化过程如下：  
 初始化 Program：   
-1. 初始化Shader
+1.3.1 初始化Shader
 ```
 a 根据shaderType(顶点着色器还是片段着色器)创建shader id
 GLint shader_object = glCreateShader(shaderType);
@@ -75,7 +74,7 @@ GLint status;
 glGetShaderiv(shader_object, GL_COMPILE_STATUS, &status);
 ```
 
-2. 初始化 Program
+1.3.2 初始化 Program
 ```
 a 创建 Program id
 GLint _object = glCreateProgram();
@@ -92,7 +91,7 @@ GLint status;
 glGetProgramiv(_object, GL_LINK_STATUS, &status);
 ```
 
-3. 初始化Triangle(GLuint gVAO = 0; GLuint gVBO = 0;)
+1.3.3 初始化Triangle(GLuint gVAO = 0; GLuint gVBO = 0;)
 ```
 glGenVertexArrays(1, &gVAO);
 glBindVertexArray(gVAO);
@@ -120,7 +119,7 @@ g 开启vert位置，并指定该位置所需数据类型以及个数
 h 重置vbo  
 i 重置vao  
 
-4. 渲染循环
+1.3.4 渲染循环
 ```
 while(!glfwWindowShouldClose(gWindow))
 {
@@ -131,7 +130,7 @@ while(!glfwWindowShouldClose(gWindow))
 a 处理输入事件，鼠标，键盘等  
 b 渲染物体
 
-4.1 渲染
+1.3.4.1 渲染
 ```
 glClearColor(0, 0, 0, 1);
 glClear(GL_COLOR_BUFFER_BIT);
