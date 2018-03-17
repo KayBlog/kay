@@ -2,14 +2,14 @@
 
 这里将介绍OpenGL API的使用博客文章，开发OpenGL围绕下面几点展开
 
-[0. 认识OpenGL和相关扩展库](#0)
-[1. 基础骨架](#1)
-[2. GLSL基础](#2)
-[3. 贴图](#3)
-[4. 矩阵](#4)
-[5. 相机](#5)
-[6. 资源实例化](#6)
-[7. 漫反射光照](#7)
+[0. 认识OpenGL和相关扩展库](#0)  
+[1. 基础骨架](#1)  
+[2. GLSL基础](#2)  
+[3. 贴图](#3)  
+[4. 矩阵](#4)  
+[5. 相机](#5)  
+[6. 资源实例化](#6)  
+[7. 漫反射光照](#7)  
 [8. 更多光照](#8)  
 
 <span id="0"></span>
@@ -199,21 +199,21 @@ h. 刷新帧缓冲区到窗口
 [转到骨架](#1)   
 
 <span id="2"></span>  
-## **2. GLSL基础**  
+## **2. GLSL基础**    
 
 作为OpenGL着色器语言，glsl代码格式类似于c代码。在此，主要是简单介绍一下glsl，以及在OpenGL如何使用以及需要注意的地方  
 
 着色器有几种，根据OpenGL文档，主要是Vertex Shader顶点着色器， Tessellation Shader曲面细分着色器，Geometry Shader几何着色器，Fragment Shader着色器。其中曲面细分和几何着色器是可选项，顶点着色器和片段着色器是必须项，一般我们只用到这两个就可以。  
 
-GLSL版本之间限定符不一样，需要留意版本问题。
+GLSL版本之间限定符不一样(1.3以前使用attribute和varying，1.4以后用in，out或者inout)，需要留意版本问题。
 
-**2.1 向量**  
+**2.1 向量**    
     [|i|u|b]vec[2|3|4]  
     浮点、整数、无符号整数、布尔向量，维度为2维，3维，4维  
     取值可以使用xyzw, rgba, stpq  
     支持调换操作，如color.rgba = color.bgra  
 
-**2.2 矩阵**
+**2.2 矩阵**  
     矩阵就是一个由向量组成的数组.  
     mat(ixj) = mat[2|3|4]x[2|3|4]  
     *矩阵存储分列式和行式存储*  
@@ -221,28 +221,124 @@ GLSL版本之间限定符不一样，需要留意版本问题。
     矩阵乘以向量，即对向量做变换 p = mat \* v  
     矩阵乘以矩阵，表示累积变换的最终变换，需满足 前一个的列数与后一个的行数值相等  
 
-http://blog.csdn.net/jeffasd/article/details/78209965 todo
 
-**2.3 限定符**
+**2.3 限定符**  
 
-**2.4 Uniform值**
+介绍常用的几个限定符  
+|限定符|描述|
+|:----:|:----:|
+|highp，mediump，lowp，invariant|精度限定|
+|const|声明变量或函数的参数为只读类型|
+|in，attribute|只能存在于vertex shader中,用于保存顶点或法线数据,它可以在数据缓冲区中读取数据|
+|out，varying|主要负责在vertex 和 fragment 之间传递变量|
+|inout|复制到函数中并在返回时复制出来|
+|uniform|在运行时shader无法改变uniform变量,程序传递给shader变换矩阵,材质,光照参数等|
 
-**2.5 内置变量**
+**2.4 流控制与纹理**  
 
-**2.6 内置函数**
+特殊的有discard，使用discard会退出片段着色器，不执行后面的片段着色操作  
+sampler2D 外部传入贴图，一般是uniform，程序传入  
 
+**2.5 内置变量**  
+
+内置变量以及内置常量  
+|变量名|描述|
+|:----:|:----:|
+|gl_Position|放置顶点坐标信息vec4|
+|gl_PointSize|gl_PointSize 需要绘制点的大小(只在gl.POINTS模式下有效)float|
+|gl_FragCoord|片元在framebuffer画面的相对位置vec4|
+|gl_FrontFacing|标志当前图元是不是正面图元的一部分bool|
+|gl_PointCoord|经过插值计算后的纹理坐标,点的范围是0.0到1.0 vec2|
+|gl_FragColor|设置当前片点的颜色 vec4 RGBA color|
+|gl_FragData[n]|设置当前片点的颜色,使用glDrawBuffers数据数组vec4 RGBA color|
+|gl_MaxVertexAttribs|>=8，int,表示在vertex shader中可用的最大attributes数|
+|gl_MaxVertexUniformVectors|vertex shader最大uniform vectors数|
+|gl_MaxVaryingVectors|vertex shader最大varying vectors数|
+|gl_MaxVertexTextureImageUnits|vertex shader最大纹理单元数|
+|gl_MaxCombinedTextureImageUnits |vertex shader最多支持多少个纹理单元|
+|gl_MaxTextureImageUnits |片元着色器中能访问的最大纹理单元数|
+|gl_MaxFragmentUniformVectors |片元着色器中可用的最大uniform vectors数|
+|gl_MaxDrawBuffers|可用的drawBuffers数|
+|gl_DepthRange|表明全局深度范围|
+
+**2.6 内置函数**  
+内置变量以及内置常量  
+|函数类型|
+|:----:|
+|通用函数|
+|角度&三角函数|
+|指数函数|
+|几何函数|
+|矩阵函数|
+|向量函数|
+|纹理查询函数|
+
+**2.7 例子**  
+下面的shader如果你可以一眼看懂,说明你已经对glsl语言基本掌握了  
+Vertex Shader:  
+```
+uniform mat4 mvp_matrix; //透视矩阵 * 视图矩阵 * 模型变换矩阵
+uniform mat3 normal_matrix; //法线变换矩阵(用于物体变换后法线跟着变换)
+uniform vec3 ec_light_dir; //光照方向
+attribute vec4 a_vertex; // 顶点坐标
+attribute vec3 a_normal; //顶点法线
+attribute vec2 a_texcoord; //纹理坐标
+varying float v_diffuse; //法线与入射光的夹角
+varying vec2 v_texcoord; //2d纹理坐标
+void main(void)
+{
+ //归一化法线
+ vec3 ec_normal = normalize(normal_matrix * a_normal);
+ //v_diffuse 是法线与光照的夹角.根据向量点乘法则,当两向量长度为1是 乘积即cosθ值
+ v_diffuse = max(dot(ec_light_dir, ec_normal), 0.0);
+ v_texcoord = a_texcoord;
+ gl_Position = mvp_matrix * a_vertex;
+}
+```
+
+Fragment Shader:  
+```
+precision mediump float;
+uniform sampler2D t_reflectance;
+uniform vec4 i_ambient;
+varying float v_diffuse;
+varying vec2 v_texcoord;
+void main (void)
+{
+ vec4 color = texture2D(t_reflectance, v_texcoord);
+ //这里分解开来是 color*vec3(1,1,1)*v_diffuse + color*i_ambient
+ //色*光*夹角cos + 色*环境光
+ gl_FragColor = color*(vec4(v_diffuse) + i_ambient);
+}
+```
+
+GLSL 1.4版本以后，去除了 varying和attribute，使用out和in代替  
+
+[跳转到前面](#2)
 
 ## **3. 贴图**
 
+
+
 ## **4. 矩阵**
+
+
 
 ## **5. 相机**
 
+
+
 ## **6. 资源实例化**
+
+
 
 ## **7. 漫反射光照**
 
+
+
 ## **8. 更多光照**
+
+
 
     
 
