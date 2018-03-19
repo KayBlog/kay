@@ -7,4 +7,3 @@
 2. [克鲁斯卡尔算法](Kruskal.md)  
 3. [分配问题](match.md)  
 4. [动态规划](dynamic.md)  
-5. [贪心算法](greed.md)  
