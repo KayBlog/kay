@@ -194,7 +194,7 @@ h. 刷新帧缓冲区到窗口
 
 **1.6 一般说明**
 1. VAO 与 VBO：vao可看成是vbo的数组形式，每个vbo存储模型数据。另还有VIO 顶点索引模式。绑定vbo后，需要指定如何去解析数据块。
-2. program 和 shader: program至少需要挂载顶点和片段shader。shader代码中的参数，program编译后，可以获取其索引并传值。shader里模型每一个顶点数据，要通过glEnableVertexAttribArray和glVertexAttribPointer指定  
+2. program 和 shader: program至少需要挂载顶点和片段shader。shader代码中的参数，program编译后，可以获取其索引并传值。shader里模型每一个顶点数据，要通过glEnableVertexAttribArray和glVertexAttribPointer指定，另外glVertexAttrib可以设置  
 
 [转到骨架](#1)   
 
@@ -318,12 +318,94 @@ GLSL 1.4版本以后，去除了 varying和attribute，使用out和in代替
 1. glUniform() 设置 uniform参数值
 2. glEnableVertexAttribArray 和 glVertexAttribPointer 函数指定 in或者attribute的数据，shader再对每个点的数据按照指定的字节数去获取，从而设置好点的参数值  
 3. varying在vertex shader 和 fragment shader之间共享传值(这里需要注意：fragment是在vertex指定的数值上，做插值得到。因为fragment针对光栅化后的像素来计算，而vertex只是针对点，还没经过光栅化)  
+4. layout(location = 0)可以设定顶点数据的片段位置，然后通过程序设置 
 
 [跳转到前面](#2)
 
 ## **3. 贴图**
 
+现在往基础骨架中，添加一张贴图。  
+**3.1 初始化贴图信息**  
+3.1.1 bmp图像加载
+```
+    int width, height, channels;
+    unsigned char* pixels = stbi_load(filePath.c_str(), &width, &height, &channels, 0);
+    if(!pixels) throw std::runtime_error(stbi_failure_reason());
+    
+    Bitmap bmp(width, height, (Format)channels, pixels);
+    stbi_image_free(pixels);
+    bmp.flipVertically();
+```
 
+3.1.2 封装Texture贴图信息  
+```
+Texture(const Bitmap& bitmap, GLint minMagFiler, GLint wrapMode) :
+    _originalWidth((GLfloat)bitmap.width()),
+    _originalHeight((GLfloat)bitmap.height())
+    {
+        glGenTextures(1, &_object);
+        glBindTexture(GL_TEXTURE_2D, _object);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minMagFiler);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, minMagFiler);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapMode);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapMode);
+        glTexImage2D(GL_TEXTURE_2D,
+                     0, 
+                     TextureFormatForBitmapFormat(bitmap.format()),
+                     (GLsizei)bitmap.width(), 
+                     (GLsizei)bitmap.height(),
+                     0, 
+                     TextureFormatForBitmapFormat(bitmap.format()), 
+                     GL_UNSIGNED_BYTE, 
+                     bitmap.pixelBuffer());
+        glBindTexture(GL_TEXTURE_2D, 0);      
+    }
+
+```
+1. 创建贴图id  
+2. 绑定id  
+3. 设置Filter参数   
+    1. GL_TEXTURE_MIN_FILTER  
+    2. GL_TEXTURE_MAG_FILTER  
+4. 设置Wrap参数  
+    1. GL_TEXTURE_WRAP_S  
+    2. GL_TEXTURE_WRAP_T  
+5. 设置贴图数据  
+6. 重置贴图id绑定为0  
+
+主要是针对GL_TEXTURE_2D 2D纹理。  
+
+Filter参数：针对纹理尺寸和图形尺寸而言    
+1. GL_TEXTURE_MAG_FILTER(纹理尺寸小于图形尺寸)：GL_NEAREST 和 GL_LINEAR  
+2. GL_TEXTURE_MIN_FILTER(纹理尺寸大于等于图形尺寸)：GL_NEAREST和GL_LINEAR以及MIPMAP相关选项  
+GL_NEAREST：计算快，但没有过度的效果，锯齿明显  
+GL_LINEAR：计算慢，插值计算，较为平滑  
+
+Wrap参数：针对纹理坐标值而言，主语是超过了纹理坐标范围(小于0或者大于1)  
+1. GL_TEXTURE_WRAP_S：水平方向，u，x  
+2. GL_TEXTURE_WRAP_T：垂直方向，v，y 
+GL_REPEAT：超过的部分进行重复，可以将图形分成多个格子的形式  
+GL_CLAMP或GL_CLAMP_TO_EDGE：简单的截断，小于0取0，大于1取1  
+
+Mipmaps：level等级  
+当纹理尺寸大于图形尺寸时的一种技术手段。当模型很远时，z值较大，选择较小的贴图，因为不用关心细节。mipmap图片可以有OpenGL自动创建保存，需要的时候进行加载。对应level参数  
+
+**3.2 贴图使用并渲染**   
+```
+gProgram->use();
+glActiveTexture(GL_TEXTURE0);
+glBindTexture(GL_TEXTURE_2D, gTexture->object());
+gProgram->setUniform("tex", 0);// glActiveTexture GL_TEXTURE0对应
+```
+1. 执行当前program  
+2. 激活0号贴图  
+3. 绑定贴图id  
+4. 将贴图信息传入shader sampler2D参数  
+注意：  
+glEnable(GL_TEXTURE_2D);开启  
+uniform sampler2D：shader里纹理采样器设置  
+支持多重纹理(原始贴图，光照贴图，法线贴图等)  
+可能会这样写glUniform1i(texLoc, BaseID,但这做法是错的，GLSL的sample2D只接受纹理单元的索引号，GL_TEXTURE0+i，还有一个要注意的地方就是要用glUniform1i函数，而不要用glUniform1ui()  
 
 ## **4. 矩阵**
 
