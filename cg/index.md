@@ -1,6 +1,6 @@
 [<< 返回到主页](../index.md)
 
-**这里将介绍计算机几何和图形学的博客文章**  
+**这里将介绍图形学和OpenGL的博客文章**  
 
 1. [坐标系](coordinate.md)  
 2. [裁剪和光栅化](clip_rasterization.md)  
