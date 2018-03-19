@@ -314,6 +314,11 @@ void main (void)
 
 GLSL 1.4版本以后，去除了 varying和attribute，使用out和in代替  
 
+**总结：**  
+1. glUniform() 设置 uniform参数值
+2. glEnableVertexAttribArray 和 glVertexAttribPointer 函数指定 in或者attribute的数据，shader再对每个点的数据按照指定的字节数去获取，从而设置好点的参数值  
+3. varying在vertex shader 和 fragment shader之间共享传值(这里需要注意：fragment是在vertex指定的数值上，做插值得到。因为fragment针对光栅化后的像素来计算，而vertex只是针对点，还没经过光栅化)  
+
 [跳转到前面](#2)
 
 ## **3. 贴图**
