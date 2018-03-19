@@ -409,25 +409,92 @@ uniform sampler2D：shader里纹理采样器设置
 
 ## **4. 矩阵**
 
-
+```
+uniform mat4 projection;
+uniform mat4 camera;
+uniform mat4 model;
+```
+在shader里，程序进行设置model矩阵。若在循环内，修改模型矩阵，每帧都更新最新的model矩阵，则在窗口能看到图形的变化。  
+顶点着色器计算时，常用的就是模型本地顶点进行mvp变换到齐次裁剪空间，渲染管线进行后期的裁剪，透视除法，图元装配等等计算    
 
 ## **5. 相机**
-
-
+```
+uniform mat4 projection;
+uniform mat4 camera;
+uniform mat4 model;
+```
+在shader里，程序修改相机camera矩阵，则可以观察到 场景里不同的位置。  
+1. 鼠标move对相机的旋转操作时，对鼠标的增量进行累加，然后计算旋转矩阵(该表欧拉角)  
+2. 鼠标滚轮拉近拉远(fov改变)  
+3. 键盘WASD对相机进行平移操作(局部坐标系XOY平面平移)  
 
 ## **6. 资源实例化**
 
+**6.1 基础数据封装**  
+现在结合前面所讲，对一个模型进行简单封装：  
+```
+struct ModelAsset {
+    Program* shaders;
+    Texture* texture;
+    GLuint vbo;
+    GLuint vao;
+    GLenum drawType;
+    GLint drawStart;
+    GLint drawCount;
+}
+```
+1. shaders为创建program，并且链接着色器  
+2. texture为创建纹理贴图，指定图片资源信息  
+3. vao，vbo指定模型数据信息(顶点坐标，纹理坐标等)  
+4. drawType, drawStart,drawCount为glDrawArrays提供参数信息  
 
+```
+struct ModelInstance {
+    ModelAsset* asset;
+    glm::mat4 transform;
+};
+```
+1. 在上面的结构体中，添加一个变换矩阵(此处理解为局部坐标系与世界坐标系之间的联系)  
 
-## **7. 漫反射光照**
+**6.2 管理模型并渲染**  
+```
+std::list<ModelInstance> gInstances;
+CreateInstances();
+void RenderInstance(const ModelInstance& inst);
+```
+1. 保存创建的所有实例  
+2. 创建所有对象并保存  
+3. 渲染所有实例  
 
+此处只是对之前所讲的一个扩展，能够处理多个物体。当存在多个物体时，会出现遮挡等情形，必要的时候需要开启深度测试或者融合处理达到透明  
 
+## **7. 光照**
+
+上诉说完，还剩下一个光照来模拟更真实的世界  
+```
+struct Light {
+    vec3 position;
+    vec3 intensities;
+};
+```
+1. 灯光位置  
+2. 灯光颜色  
+
+此处只提供光的位置，而没有方向    
+其他光照灯型为：平行光，点光源，聚光灯，区域光，环境光等  
+
+光照计算一般在着色器里进行，并且模型的数据中要包含顶点法线，计算过程：  
+1. 将顶点映射到世界坐标系 vertPosition  
+2. 计算点到灯光位置的方向 surfaceToLight = light.position - vertPosition  
+3. 将顶点法线映射到世界坐标系normal  
+4. 计算normal与surfaceToLight的cos值，得到入射角  
+5. 根据入射角度与灯光强度计算反映在这个点上的光强，然后与基础贴图颜色做乘积得到最终的颜色。颜色透明通道默认为基础贴图的alpha值  
 
 ## **8. 更多光照**
 
-
-
-    
+按照光源分类进行封装，然后将参数传递给着色器处理即可。  
+光照计算可在顶点作色器处理，也可以在片段着色器处理  
+因为作为参数传入，则不涉及到光照的OpenGL函数。老版本的OpenGL函数，有单独介绍光照的函数API。  
 
 
 
