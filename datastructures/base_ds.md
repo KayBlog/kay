@@ -12,7 +12,8 @@
 <span id = "1"></span>  
 ## **1. 线性表和链表**  
 
-
+![线性结构](images/line.png)  
+![链式结构](images/link.png)  
 
 <span id = "2"></span>  
 ## **2. 桟**  
