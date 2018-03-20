@@ -2,6 +2,10 @@
 
 **这里将介绍图形学光照模型的博客文章**  
 
+**http://blog.csdn.net/silangquan/article/details/45629149**  
+**http://blog.csdn.net/Jurbo/article/details/75151200**  
+**https://www.cnblogs.com/luxishi/p/6409716.html**  
+
 [1. 认识表面光照效果](#1)  
 [2. 局部光照与BRDF介绍](#2)  
 [3. 多边形绘制算法](#3)  
