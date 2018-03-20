@@ -295,6 +295,8 @@ void DrawSpan(unsigned int *adr, int min, int max)
 2. 按由近到远的顺序遍历物体，并进行计算  
     1. 计算物体的包围盒对应的像素区域内，有没有其他物体的像素  
     2. 
+![AABB分区图](images/partition.png "长方体分区 27个区块")
+
 **3.1 物体空间管理**  
 
 **3.2 快速排除**  
