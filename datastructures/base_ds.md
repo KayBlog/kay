@@ -2,12 +2,13 @@
 
 **这里将介绍队列和桟博客文章**  
 
-[1. 数组和线性表](#1)  
-[2. 桟](#2)  
-[3. 队列的顺序存储和链式存储](#3)  
+[1. 认识数组和线性表](#1)  
+[2. 线性表顺序结构实现](#2)  
+[3. 线性表链式结构实现](#3)  
+[4. 桟和队列的一般实现](#4)  
 
 <span id = "1"></span>  
-## **1. 数组和线性表**  
+## **1. 认识数组和线性表**  
 线性表分顺序存储和链式存储  
 ![数组存储结构](images/array.png)  
 ![顺序存储结构](images/line.png)  
@@ -29,47 +30,15 @@
 3. 数组则是你确定需要多少个的时候使用(没有删除和增加的操作)  
 
 <span id = "2"></span>  
-## **2. 桟**  
-
-桟一般使用线性表中的顺序存储结构，适用于元素先进先出。  
+## **2. 线性表顺序结构实现**  
+ 
 在处理增加操作时，存在空间满的情形，此时：  
 1. 扩充空间，一般在现有的空间大小上乘以2 + 1  
 2. 拷贝原先的元素到新的空间上  
 3. 释放原来的内存空间  
 所以，增加操作动态扩展时，比较耗性能并且内存分配大造成浪费  
-泛型代码结构:  
-```
-template<class T>
-class Stack
-{
-public:
-    Stack();
-    void Push(T);  //push an item onto the stack
-    T Pop();       //pop an item from stack
-    T Peek();
 
-    bool IsEmpty(); 
-    void Clear();
-    ~Stack();
-private:
-    struct StackNode 
-    {
-        T _current;
-        StackNode *_below;
-        StackNode(T C, StackNode *B = 0) : _current(C), _below(B) {}
-    };
-    int _size;
-    StackNode *_top;
-};
-```
-
-<span id = "3"></span>  
-## **3. 队列的顺序存储和链式存储**  
-队列一般以链式存储方式，当然也可以使用顺序存储结构实现。队列比较常用的数据结构，适用于先进后出的规则。  
-在处理增加或删除某一个元素时，先要进行查找时间消耗为O(n)对此元素的增加或删除操作为O(1)，并不像顺序存储结构那么复杂。  
-
-**3.1 顺序存储**  
-
+线性表的顺序存储方式的一般性代码结构:  
 ```
 template <class list_type>
 class List
@@ -148,10 +117,14 @@ private:
     unsigned int allocation_size;
 };
 ```
-这可以实现队列的功能，采用顺序存储结构  
 
-**3.2 链式存储**  
 
+<span id = "3"></span>  
+## **3. 线性表链式结构实现**   
+
+增删操作时，元素与前一个和后一个元素之间的连接要小心  
+
+双向循环链表的代码结构:  
 ```
 template <class CircularLinkedListType>
 class CircularLinkedList
@@ -215,26 +188,69 @@ private:
     LinkedList Merge( LinkedList L1, LinkedList L2 );
     LinkedList Mergesort( const LinkedList& L );
 };
-// 队列的链式存储结构
-template <class QueueType>
-class QueueLinkedList
+```
+
+此处是循环双链表元素结构：  
+```
+struct node
+{
+    CircularLinkedListType item;
+    node* previous;
+    node* next;
+};
+```
+
+若是双链表,对上述的循环列表在增删操作时，不需要将head和tail连接    
+
+若是单链表(只存在node* next，而没有previous)：  
+```
+struct node
+{
+    CircularLinkedListType item;
+    node* next;
+};
+```
+
+<span id = "4"></span>  
+## **4. 桟和队列的一般实现**  
+
+桟：元素先进后出  
+队列：元素先进先出  
+两种常用的线性数据结构均可采用顺序或链式实现  
+
+**4.1 桟**  
+泛型代码结构:  
+```
+template<class T>
+class Stack
 {
 public:
-    QueueLinkedList();
-    QueueLinkedList( const QueueLinkedList& original_copy );
-    bool operator= ( const QueueLinkedList& original_copy );
-    QueueType Pop( void );
-    QueueType& Peek( void );
-    QueueType& EndPeek( void );
-    void Push( const QueueType& input );
-    unsigned int Size( void );
-    void Clear( void );
-    void Compress( void );   
-private:
-    LinkedList<QueueType> data;
-};
+    Stack();
+    void Push(T);  //push an item onto the stack
+    T Pop();       //pop an item from stack
+    T Peek();
 
-// 队列的顺序存储结构
+    bool IsEmpty(); 
+    void Clear();
+    ~Stack();
+private:
+    struct StackNode 
+    {
+        T _current;
+        StackNode *_below;
+        StackNode(T C, StackNode *B = 0) : _current(C), _below(B) {}
+    };
+    int _size;
+    StackNode *_top;
+};
+```
+上述代码结构是桟用顺序存储的实现方式。同样，线性表的链式和顺序存储也适用于桟的规则。  
+
+**4.1 队列**  
+
+下面泛型代码为队列的顺序存储实现(先进先出)：  
+```
+/// \brief A queue implemented as an array with a read and write index.
 template <class queue_type>
 class Queue
 {
@@ -267,24 +283,28 @@ private:
 };
 ```
 
-此处是循环双链表的形式：  
+下面泛型代码为队列的链式存储实现(先进先出)：  
 ```
-struct node
+template <class QueueType>
+class QueueLinkedList
 {
-    CircularLinkedListType item;
-    node* previous;
-    node* next;
+
+public:
+    QueueLinkedList();
+    QueueLinkedList( const QueueLinkedList& original_copy );
+    bool operator= ( const QueueLinkedList& original_copy );
+    QueueType Pop( void );
+    QueueType& Peek( void );
+    QueueType& EndPeek( void );
+    void Push( const QueueType& input );
+    unsigned int Size( void );
+    void Clear( void );
+    void Compress( void );
+    
+private:
+    LinkedList<QueueType> data;
 };
 ```
 
-若是双链表,对上述的循环列表在增删操作时，不需要将head和tail连接    
 
-若是单链表(只存在node* next，而没有previous)：  
-```
-struct node
-{
-    CircularLinkedListType item;
-    node* next;
-};
-```
 
