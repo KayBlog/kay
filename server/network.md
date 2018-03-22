@@ -370,6 +370,9 @@ CmdlineServices.instance().startCmdline();
 <span id="3"></span>
 ## **3. 网络服务封装**  
 
+整体框架图：  
+![网络封装和协议处理](images/server_relation.png)  
+
 对于最核心重要的，莫过于网络库的封装，这里是基于Netty的封装：  
 需要准备：  
 1. 服务端绑定的ip和端口号  
@@ -422,9 +425,7 @@ java中nio成为new io，与标准IO有几点不同：
 2. NIO可以让你非阻塞的使用IO，例如：当线程从通道读取数据到缓冲区时，线程还是可以进行其他事情。当数据被写入到缓冲区时，线程可以继续处理它。从缓冲区写入通道也类似。  
 3. NIO引入了选择器select的概念，选择器用于监听多个通道的事件（比如：连接打开，数据到达）。因此，单个的线程可以监听多个数据通道。  
 注意：nio实质上是对标准io的进一步封装。  
-通道：对每一条socket连接，对应到Channel上，然后基于通道来操作socket  
-缓冲区：socket接收和发送数据会先放到缓冲区内，这是一层封装。  
-非阻塞IO: 用户线程向内核发起read()请求时，内核不管数据有没有都会有返回值。  
+同步非阻塞IO: 用户线程向内核发起read()请求时，内核不管数据有没有都会有返回值。  
 select: 内核提供的阻塞函数，用户线程将io操作的socket注册到select中，然后等待阻塞函数select返回。当数据到达后，socket被激活，select返回，用户可以进行read操作。  
 ```
 {
@@ -445,16 +446,444 @@ while(true) {
 }
 }
 ```
-在IO几种模式上，一般选择IO多路复用。实际上, 我们可以给select注册多个socket, 然后不断调用select读取被激活的socket，实现在同一线程内同时处理多个IO请求的效果.我们把select轮询抽出来放在一个线程里, 用户线程向其注册相关socket或IO请求，等到数据到达时通知用户线程，则可以提高用户线程的CPU利用率.这样, 便实现了异步方式。  
+在IO几种模式上，一般选择IO多路复用，可以给select注册多个socket, 然后不断调用select读取被激活的socket，实现在同一线程内同时处理多个IO请求的效果.把select轮询抽出来放在一个线程里, 用户线程向其注册相关socket或IO请求，等到数据到达时通知用户线程，则可以提高用户线程的CPU利用率.这样, 便实现了异步方式。  
 
-// to do
+所以有主线程和工作线程之分，主线程调用select函数，阻塞等待。工作线程负责处理select注册的socket监听事件。  
+socket通过3次握手建立连接后，有一个连接成功的事件，此时进行两步操作:  
+1. socket注册读，写，异常3个事件到select，后面当有这些事件发生时工作线程响应  
+2. 工作线程响应事件，此处设置了8个工作线程  
 
-处理器需要完成：  
+对于事件的注册，netty都已经封装好了。对应用层来说只需要继承ChannelInitializer<SocketChannel>并重载initChannel(SocketChannel ch)即可，然后通过 childHandler 注册子类实例。  
+
+netty channel读字节和写字节对应两个ChannelHandler（ChannelInboundHandler和ChannelOutboundHandler）。将字节的处理按功能划分，主要是ByteToMessage，MessageToMessage，MessageToByte等，且功能有解码(读)和编码(写)处理。   
+
+那么，注册的子类实例需要完成：  
 1. 断包粘包处理  
 2. 解压缩解密处理  
 3. 压缩加密处理  
-4. 组装成能够处理的协议包  
+4. 组装成能够处理的协议包或者发送包   
+5. 处理协议包  
 
-<span id="4"></span>
+管道设置即：  
+```
+@Override
+protected void initChannel(SocketChannel ch) throws Exception 
+{
+    ChannelPipeline pipeline = ch.pipeline();
+    // 断包粘包处理
+    pipeline.addLast(new MJSocketByteSplitDecoder());
+    // 收包解密处理
+    pipeline.addLast(new MJSocketByteDecryptDecoder());
+    // Message对象转字节流
+    pipeline.addLast(new MJSocketMessageToByteEncoder());
+    // 加密
+    pipeline.addLast(new MJSocketByteEncryptEncoder());
+    // 收包handle处理器
+    pipeline.addLast(new MJSocketChannelHandler());
+}
+```
+
+断包粘包处理：  
+```
+public class MJSocketByteSplitDecoder  extends ByteToMessageDecoder
+{
+    @Override
+    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception 
+    {
+        ByteBuf remain = ctx.channel().attr(MJSocketChannelKey.SESSIONBUF).get();
+        remain.writeBytes(in);
+        MJMessageHead head = ctx.channel().attr(MJSocketChannelKey.HEAD).get();
+        while (true)
+        {
+            if (!ctx.channel().attr(MJSocketChannelKey.IsSharedHeadFilled).get())
+            {
+                boolean success = MJByteBufHelper.ReadHead(remain, head);
+                if (!success)
+                {
+                    break;
+                }
+                ctx.channel().attr(MJSocketChannelKey.IsSharedHeadFilled).set(true);
+            }
+            if (ctx.channel().attr(MJSocketChannelKey.IsSharedHeadFilled).get())
+            {
+                if (head.mLength == 0)
+                {
+                    out.add(new MJMessage(head.Clone(), null));
+                    ctx.channel().attr(MJSocketChannelKey.IsSharedHeadFilled).set(false);
+                }
+                else if (MJByteBufHelper.CanRead(remain, head.mLength))
+                {
+                    byte[] content = MJByteBufHelper.readBytes(remain, head.mLength);
+                    out.add(new MJMessage(head.Clone(), content));
+                    ctx.channel().attr(MJSocketChannelKey.IsSharedHeadFilled).set(false);
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+        remain.discardReadBytes();
+    }
+}
+```
+
+加密解密处理：  
+```
+public class MJSocketByteEncryptEncoder extends MessageToMessageEncoder<MJMessage>{
+
+    @Override
+    protected void encode(ChannelHandlerContext ctx, MJMessage msg, List<Object> out) throws Exception 
+    {
+        msg.Encrypt();
+        out.add(msg);
+    }
+}
+public class MJSocketByteDecryptDecoder extends MessageToMessageDecoder<MJMessage>
+{
+    @Override
+    protected void decode(ChannelHandlerContext ctx, MJMessage msg, List<Object> out) throws Exception 
+    {
+        out.add(msg);
+    }
+    
+}
+```
+
+发包处理：  
+```
+public class MJSocketMessageToByteEncoder extends MessageToByteEncoder<MJMessage>
+{
+    @Override
+    protected void encode(ChannelHandlerContext ctx, MJMessage msg, ByteBuf out) throws Exception 
+    {
+        out = msg.GetByteBuf();
+        ctx.writeAndFlush(out);
+        out.release();
+    }
+
+}
+```
+
+通道处理器(此处有连接成功，断开连接，连接异常，有数据可读等事件的处理),最好将这些事件放在一个类里，便于开发定位：  
+```
+public class MJSocketChannelHandler extends SimpleChannelInboundHandler<MJMessage>
+{
+    private static Logger mLogger = LoggerFactory.getLogger(MJSocketChannelHandler.class);
+    @Override
+    protected void channelRead0(ChannelHandlerContext ctx, MJMessage msg) throws Exception 
+    {
+        MJSocketSession session = ctx.channel().attr(MJSocketChannelKey.SESSION).get();
+        MJCommandManager.instance.ExecuteMessage(session, msg);
+    }
+    
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception
+    {
+        MJSocketSession session = new MJSocketSession();
+        MJSessionManager.manager.AddSession(session);
+        
+        ByteBuf buf = PooledByteBufAllocator.DEFAULT.directBuffer(MJMessageHead.Size());
+        MJMessageHead head = new MJMessageHead();
+        head.mSession = session.id();
+        session.Channel(ctx.channel());
+        
+        ctx.channel().attr(MJSocketChannelKey.SESSION).set(session);
+        ctx.channel().attr(MJSocketChannelKey.SESSIONBUF).set(buf);
+        ctx.channel().attr(MJSocketChannelKey.HEAD).set(head);
+        ctx.channel().attr(MJSocketChannelKey.IsSharedHeadFilled).set(false);
+        
+        InetSocketAddress saddr =  (InetSocketAddress)ctx.channel().remoteAddress();
+        session.IP(saddr.getHostString());
+        session.port(saddr.getPort());
+        System.out.println("connected: " + session.IP() + " " + session.port());
+        mLogger.info("connected: " + session.IP() + " " + session.port());
+    }
+
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception
+    {
+        MJSocketSession session = ctx.channel().attr(MJSocketChannelKey.SESSION).get();
+        ctx.channel().attr(MJSocketChannelKey.SESSIONBUF).get().release();
+        MJSessionManager.manager.Remove(session.id());
+        System.out.println("disconnected: " + session.IP() + " " + session.port());
+        mLogger.info("disconnected: " + session.IP() + " " + session.port());
+        ctx.close(); 
+    }
+    
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
+            throws Exception {
+        System.out.println("exception: " + cause.getMessage());
+        ctx.close();
+    }
+}
+
+```
+
+<span id="4"></span>  
 ## **4. 协议处理**  
+
+**4.1 协议格式**  
+
+协议格式包含协议头和协议体。一般协议头的大小固定，且按照固定字节大小读取，其中包含协议id，协议体或整个协议的字节长度。如果需要，可以加上数据校验，可以判断数据是否被修改。另外的一些信息，根据自身业务需求添加。  
+
+协议头：  
+```
+public class MJMessageHead 
+{
+    public int mType = 0;
+    // 报文长度，不包含消息头，目前最大允许1K
+    // 单包大于1k的上行请求消息，将会被丢弃并且会关闭SOCKET
+    public int mLength = 0;
+    // 返回码
+    public int mResult = 0;
+    // 会话id，供服务之间使用，客户端无需关心
+    public int mSession = 0;
+    // 源地址，接入服务会将此项值与SOCKET绑定，是应答或者通知消息下发路由的一句
+    // 具体的游戏需要使用相同的填充规则，比如同一田聪USERID
+    public long mFrom = 0;
+
+    // 目的地址，功能与from字段类似
+    public long mTo = 0;
+
+    // 业务掩码，服务器根据此字段对消息做路由转发
+    // 比如：如果填充房间id，那么消息会转发到相同的服务节点
+    // 如果填0，则做负载均衡分发
+    public long mMask = 0;
+    // 附加的字段，服务端会鸳鸯返回
+    // 客户端可填充序列号，用于确认一条特定的消息的应答
+    public long mAddition = 0;
+    
+    public MJMessageHead Clone()
+    {
+        MJMessageHead head = new MJMessageHead();
+        head.mType = mType;
+        head.mLength = mLength;
+        head.mResult = mResult;
+        head.mSession = mSession;    
+        head.mFrom = mFrom;
+        head.mTo = mTo;
+        head.mMask = mMask;
+        head.mAddition = mAddition;
+        return head;
+    }
+    
+    public static int Size()
+    {
+        return 48; // 4 + 4 + 4 + 4 + 8 + 8 + 8 + 8;
+    }
+
+}
+```
+
+协议包(此时并没有对包体进行解析，到协议处理时再进行处理)：  
+```
+public class MJMessage 
+{
+    public MJMessageHead mHead;
+    public byte[] mContent;
+    
+    public MJMessage()
+    {
+        mHead = new MJMessageHead();
+        mContent = new byte[MJMessageHead.Size()];
+    }
+    
+    public MJMessage(MJMessageHead head, byte[] content)
+    {
+        mHead = head;
+        mContent = content;
+    }
+    
+    public ByteBuf GetByteBuf()
+    {
+        ByteBuf buf = MJByteBufHelper.WriteHead(mHead);     
+        if (mContent != null && mContent.length > 0)
+        {
+            buf.writeBytes(mContent);
+        }
+        return buf;
+    }
+    
+    public void Encrypt()
+    {
+        // to do
+    }
+    
+}
+```
+
+当然，还有一个协议号：  
+```
+public class MJMessageType 
+{
+    public final static int HEARTBEAT_RES = 1;
+}
+```
+根据协议号会找到对应的处理器，完成消息的响应  
+
+**4.2 协议处理**  
+
+上一步是收到的消息，并且能获得该消息的消息码，这一步将会对协议体做解析。  
+对于协议处理的封装，其主要功能是收到消息和收发消息的通道并做响应，而不同的消息有不同的响应，但是抽象层的逻辑处理是一致的，则很容易想到面向对象思想的多态。  
+
+封装思路：  
+1. 对抽象层的封装，提供一个处理函数让子类去实现  
+2. 子类继承抽象类，并实现处理函数  
+3. 对所有的子类注册到一张map表(协议号--处理类)  
+4. 由于多态，map表存储的类类型即为抽象父类  
+
+抽象类：  
+```
+public abstract class MJAbstractCommand implements Callable<Boolean> 
+{   
+    protected MJSocketSession mSession;
+    protected MJMessage mMessage;
+    protected List<MJMessage> mOut;
+    // private long _start;
+    public MJAbstractCommand()
+    {
+        mOut = new ArrayList<MJMessage>();
+    }
+    public MJAbstractCommand(MJSocketSession session, MJMessage message)
+    {
+        this();
+        mSession = session;
+        mMessage = message;
+        // _start = System.currentTimeMillis();
+    }  
+    public MJSocketSession Session()
+    {
+        return mSession;
+    } 
+    public abstract void Execute();
+    @Override
+    public Boolean call() throws Exception
+    {
+         Execute();
+         for (MJMessage msg : mOut) 
+         {
+             mSession.WriteMessage(msg, null);
+         }
+         mOut.clear();
+         // System.out.println("task cost: " + (System.currentTimeMillis() - _start));
+         return true;
+    }
+}
+```
+其中，抽象类继承了 Callable<Boolean>，目的是底层收到完成信息后，将信息放进消息队列。另一个线程则不断是取出消息并处理，实质上是消费者和生产者模型。这里的生产者即为工作线程，而消费者为一个线程池(能同时处理多个消息)。  
+
+代码如下：  
+```
+public class MJCommandManager
+{   
+    private static Logger mLogger = LoggerFactory.getLogger(MJCommandManager.class);
+    public static Map<Integer, Class<?> > mCommandCache = new HashMap<>();
+    public static MJCommandManager instance = new MJCommandManager();
+    private ExecutorService mExecutor = Executors.newCachedThreadPool();
+
+    private MJCommandManager()
+    {
+        
+    }
+    
+    public void ExecuteMessage(MJSocketSession session, MJMessage message)
+    {
+        Class<?> type = getClass(message.mHead.mType);
+        if (type != null)
+        {
+            try {
+                Constructor<?> constructor = type.getConstructor(MJSocketSession.class, MJMessage.class);
+                if (constructor != null)
+                {
+                    MJAbstractCommand command = (MJAbstractCommand) constructor.newInstance(session, message);
+                    mExecutor.submit(command);
+                }
+            } 
+            catch (Exception e) {
+                
+                e.printStackTrace();
+            } 
+        }
+        else
+        {
+            mLogger.info("not exists type: " + message.mHead.mType);
+        }
+    } 
+    public Class<?> getClass(int type)
+    {
+        if (mCommandCache.containsKey(type))
+        {
+            return mCommandCache.get(type);
+        }
+        return null;
+    }   
+    public static boolean initCommandManager(String packageName)
+    {
+        List<Class<?>> allClasses = MJClassFileUtil.getClasses(packageName);
+        try 
+        {
+            for (Class<?> clazz : allClasses)
+            {
+                MJCommandAnnotion cmd = clazz.getAnnotation(MJCommandAnnotion.class);
+                if (cmd == null)
+                {
+                    continue;
+                }
+
+                if (mCommandCache.containsKey(cmd.code()))
+                {
+                    mLogger.info(String.format(
+                            "Duplicated first command code: [0x%x|%d].",
+                            cmd.code(), cmd.code()));
+
+                    return false;
+                }
+
+               mCommandCache.put(cmd.code(), clazz);
+            }
+             mLogger.info(String.format("command size: %d", mCommandCache
+                    .size()));
+            return true;
+        } 
+        catch (Exception e) 
+        {
+            e.printStackTrace();
+            mLogger.error("加载command类   : " + e.getMessage());
+            return false;
+        }
+    }
+}
+```
+协议处理管理器完成：  
+1. 对所有协议处理器的注册  
+2. 将收到的协议消息放到线程池(线程池会自动去处理消息)  
+
+子类心跳包的实现：  
+```
+@MJCommandAnnotion(code = MJMessageType.HEARTBEAT_RES, desc = "心跳包")
+public class MJHeartBeatCommand extends MJAbstractCommand
+{
+    public MJHeartBeatCommand()
+    {
+        
+    }
+    
+    public MJHeartBeatCommand(MJSocketSession session, MJMessage message)
+    {
+        super(session, message);
+    }
+    
+    @Override
+    public void Execute() 
+    {
+        mOut.add(mMessage);
+    }
+    
+}
+```
+这里使用了java的注解，将协议号以注解的形式绑定到子类上，后面通过类加载器将所有的处理子类加载并解析成map表完成注册。  
+
 
