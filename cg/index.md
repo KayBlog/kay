@@ -6,5 +6,4 @@
 2. [OpenGL基础系列](opengl.md)  
 3. [裁剪和光栅化](clip_rasterization.md)  
 4. [局部光照与全局光照](lighting.md)  
-5. [材质系统](material.md)  
-6. [uv展开](uv.md)  
+5. [uv展开](uv.md)  
