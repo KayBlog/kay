@@ -16,7 +16,7 @@ Email:**kay-ang@qq.com**
 **第一阶段：**  
 
 1. [数据结构与算法](datastructures/index.md)  
-2. [基础几何与计算几何](math/index.md)  
+2. [基础几何与计算几何](geometry/index.md)  
 3. [图形学与OpenGL](cg/index.md)  
 4. [物理引擎](physics/index.md)  
 5. [渲染引擎](render/index.md)  
