@@ -5,7 +5,7 @@ Thank you.
 
 Email:**kay-ang@qq.com**
 
-## 三阶段  
+## 四阶段  
 
 博客中涉及到的代码，主要涉及到C++，JAVA和C#开发语言。  
 涉及到的书籍：  
@@ -29,10 +29,14 @@ Email:**kay-ang@qq.com**
 **第三阶段：**  
 
 8. [数值分析](numeric_analysis/index.md)  
-9. [机器学习与概率统计](machine_learning/index.md)  
-10. [图论与动态规划](graph/index.md)  
-11. [图像处理](image_process.md)  
-12. [其他](other/index.md)  
+9. [概率与统计](statisfy/index.md)  
+10. [机器学习](machine_learning/index.md)  
+11. [图论与动态规划](graph/index.md)  
+12. [图像处理](image_process.md)  
+
+**第四阶段：**  
+
+13. [其他](other/index.md)  
 
 ## 个人履历  
 
