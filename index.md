@@ -5,6 +5,14 @@ Thank you.
 
 Email:**kay-ang@qq.com**
 
+## 三阶段  
+
+博客中涉及到的代码，主要涉及到C++，JAVA和C#开发语言。  
+涉及到的书籍：  
+// kay to do  
+涉及到的开源项目：  
+// kay to do  
+
 **第一阶段：**  
 
 1. [数据结构与算法](datastructures/index.md)  
@@ -25,3 +33,7 @@ Email:**kay-ang@qq.com**
 10. [图论与动态规划](graph/index.md)  
 11. [图像处理](image_process.md)  
 12. [其他](other/index.md)  
+
+## 个人履历  
+
+// kay to do
