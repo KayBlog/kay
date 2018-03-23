@@ -8,7 +8,7 @@
 
 接下来以4个模块来讨论渲染引擎的设计  
 
-[1. 场景设计](scene.md)  
+[1. 认识场景](scene.md)  
 [2. 组成部分](component.md)  
 [3. 几何数据](model_skeleton.md)  
 [4. 材质系统](material.md)  
