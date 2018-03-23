@@ -2,13 +2,14 @@
 
 **这里将介绍渲染引擎设计的博客文章**  
 
-这里的渲染引擎介绍基于Gameplay3D这款开源3D引擎  
+这里的渲染引擎介绍基于Gameplay3D这款开源3D引擎,在源码的基础上有些许该表  
 
-**什么是渲染引擎**
+**什么是渲染引擎**  
 
 接下来以4个模块来讨论渲染引擎的设计  
 
-[1. 渲染引擎组成](component.md)  
-[2. 模型与动画文件格式](model_skeleton.md)  
-[3. 材质系统](material.md)  
-[4. 场景设计与空间划分](scene.md)  
+[1. 场景设计](scene.md)  
+[2. 组成部分](component.md)  
+[3. 几何数据](model_skeleton.md)  
+[4. 材质系统](material.md)  
+[5. 场景空间划分](BSP.md)  
