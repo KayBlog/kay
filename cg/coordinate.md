@@ -9,6 +9,7 @@
 [3. 相机空间坐标系](#3)  
 [4. 投影变换与齐次裁剪空间](#4)  
 [5. 视口变换](#5)  
+[6. 屏幕坐标变换到世界坐标](#6)  
 
 在介绍坐标系之前，先想一下这个场景：在游戏场景里，存在着许多物体。这些物体是美术在模型软件上制作出来的，那么就有这样一个问题：美术制作模型依赖一个坐标系，模型放置在场景里存在一个坐标系，这样存在两个坐标系。接下来分析这两个坐标系。
 
@@ -77,8 +78,37 @@
 在这里，贴出一篇不错的文章:  
 [软渲染](https://www.davrous.com/2013/06/13/tutorial-series-learning-how-to-write-a-3d-soft-engine-from-scratch-in-c-typescript-or-javascript/)  
 
+<span id="5"></span>
+## **6. 屏幕坐标变换到世界坐标**
 
+现在假设有一个屏幕坐标sp(x,y),要查找对应的世界坐标系下的一个点。  
+现在已知视口矩形viewport,则将屏幕坐标转化到NDC坐标系(CVV坐标系)：  
+```
+Vector4 screen((x - viewport.x) / viewport.width, ((viewport.height - y) - viewport.y) / viewport.height, depth, 1.0f);
+```
+上述变换为视口变换的逆变换。其中深度值depth是需要设置的，可以设置为0或1。 设置为0时，点坐标为变换到近平面，为1时变换到远平面。注意：CVV是裁剪空间经过透视除法得到，后面计算得到的点需要除以w值。      
 
+然后根据透视投影逆矩阵变换到相机空间：  
+```
+GetInverseProjectionMatrix().TransformVector(screen, &screen);
+```
+再根据相机变换view的逆矩阵变换到世界坐标系：  
+```
+GetInverseViewMatrix().TransformVector(screen, &screen);
+```
+然后点坐标除以第四维w：  
+```
+if (screen.w() != 0.0f)
+{
+    float r = FastMath::FastReverse(screen.w());
+    screen.x() *= r;
+    screen.y() *= r;
+    screen.z() *= r;
+}
+```
+故获得了世界坐标。  
+
+一般屏幕坐标需要记上一个深度值才能获得对应的坐标点，我们可以使用深度值为0来获得一个值后，通过与相机的世界坐标做差得到一条射线。用射线去检测与场景中的哪一个三角面有交点（选择最近的那一个点），即可得到世界坐标。  
 
 
 
