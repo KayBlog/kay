@@ -5,9 +5,6 @@
 [1. 二叉树](#1)  
 [2. 二叉搜索树](#2)  
 [3. 多叉树](#3)  
-[4. 四叉树](#4)  
-[5. 八叉树](#5)  
-[6. kd-tree](#6)  
 
 <span id="1"></span>
 ## **1. 二叉树**  
@@ -90,12 +87,3 @@ void Tree<TreeType>::DeleteDecendants(void)
         delete output[i];
 }
 ```
-
-<span id="4"></span>
-## **4. 四叉树**  
-
-<span id="5"></span>
-## **5. 八叉树**  
-
-<span id="6"></span>
-## **6. kd-tree**  
