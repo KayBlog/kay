@@ -520,3 +520,10 @@ void Effect::SetValue(Uniform *uniform, const Texture::Sampler *sampler)
     GL_ASSERT( glUniform1i(uniform->GetLocation(), uniform->GetIndex()) );
 }
 ```
+4. 材质存在层级关系，则在设置OpenGL状态值的时候，需要从上往下进行设置。  
+    1. 上层设置  
+        1. 子层设置，重置为子层  
+        2. 子层没设置，以上层设置为准    
+    2. 上层没设置  
+        1. 子层设置，设置  
+        2. 子层没设置，使用默认的    
