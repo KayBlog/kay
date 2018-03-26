@@ -506,3 +506,17 @@ void VertexAttributeBinding::SetVertexAttribPointer(GLuint indx, GLint size, GLe
 }
 ```
 2. 设置Uniform值，这里需要结合Node信息  
+3. 贴图的Uniform设置  
+```
+void Effect::SetValue(Uniform *uniform, const Texture::Sampler *sampler)
+{
+    GP_ASSERT(uniform->GetType() == GL_SAMPLER_2D || uniform->GetType() == GL_SAMPLER_CUBE);
+    GP_ASSERT((sampler->GetTexture()->GetType() == Texture::TEXTURE_2D && uniform->mType == GL_SAMPLER_2D) ||
+              (sampler->GetTexture()->GetType() == Texture::TEXTURE_CUBE && uniform->mType == GL_SAMPLER_CUBE));
+
+    bool needed = false;
+    GL_ASSERT( glActiveTexture(GL_TEXTURE0 + uniform->GetIndex()) );
+    const_cast<Texture::Sampler*>(sampler)->Bind();
+    GL_ASSERT( glUniform1i(uniform->GetLocation(), uniform->GetIndex()) );
+}
+```
