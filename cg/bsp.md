@@ -528,12 +528,73 @@ inline HexSplit ChooseSplitScanSample( const HexKDTreeFrame &frame, const HexAxi
 排序很简单，对所有的分割面做一个排序。然后遍历计算每一个分割面的below和above。  
 主要的是排序带来的复杂度。  
 
+最后简图来回顾构造过程：  
+![kdtree constructor](images/simple_fast_kdtree.png)
 
 **1.4 查询**  
+ObjectsInSpere    
+```
+unsigned int HexKDTreeBuilder::ObjectsInSphere( HexArray<__u32> &targetList, const HexObjectList *objectList, const HexPoint &center, const float radius )
+{
+    unsigned int count = 0;
+    HexArray<HexKDTreeNode> *queryingNodes = LockQueryingNodes();
+    HexReferenceArena *arena = LockQueryingArena(); 
+    InitializeChoosenMasks(objectList->size);
+    if( queryingNodes->size > 1 )
+        RecursiveObjectsInSphere(targetList, objectList, arena, queryingNodes, (*queryingNodes)[1], 1, objectList->worldBounds, center, radius, &count );
+    ReleaseQueryingNodes();
+    ReleaseQueryingArena();
+    return count;
+}
+void HexKDTreeBuilder::RecursiveObjectsInSphere( HexArray<__u32> &targetList, const HexObjectList *objectList, const HexReferenceArena *arena, const HexArray<HexKDTreeNode> *queryingNodes, const HexKDTreeNode &node, const __u32 currentIndex, const HexAABBox &bound, const HexPoint &center, const float radius, unsigned int *count )
+{
+    if (node.Leaf())
+    {
+        if (*count + node.LeafSize() >= targetList.size)
+            targetList.Resize(targetList.size + (node.LeafSize() << 2));
+        __u32 index;
+        //leaf node, add aabb to the result array
+        for (unsigned int i = node.RangeStart(); i < node.RangeStart() + node.LeafSize(); i++)
+        {
+            index = (*arena)[i];
+            if (!choosenMasks[index] && OverlapSphereAABB(objectList->AABB(index), center, radius))
+            {
+                targetList[*count] = index;
+                choosenMasks[index] = true;
+                (*count) ++;
+            }
+        }
+        return;
+    }
+    //get child offset and bounds
+    __u32 firstChild = currentIndex + node.ChildOffset();
+    const HexAABBox leftBound  = bound.BoundUpper(node.Axis(), node.Plane());
+    const HexAABBox rightBound  = bound.BoundLower(node.Axis(), node.Plane());
+    if (OverlapSphereAABB(leftBound, center, radius) )
+        RecursiveObjectsInSphere(targetList, objectList, arena, queryingNodes, (*queryingNodes)[firstChild], firstChild, leftBound, center, radius, count);
+    if (OverlapSphereAABB(rightBound, center, radius) )
+        RecursiveObjectsInSphere(targetList, objectList, arena, queryingNodes, (*queryingNodes)[firstChild+1], firstChild + 1, rightBound, center, radius, count);
+}
+```
+从根节点开始查询：索引为1.  
+这里主要计算球体与AABB是否相交，如果相交则进一步查询，递归下去，知道叶子节点。然后计算叶子节点中的物体是否与球体相交，记录相交的物体索引值。  
 
+ObjectsInAABB    
+这里类似上面的过程，主要是计算AABB与AABB相交计算  
 
+RaycastAABB    
+主要计算射线与AABB是否相交  
+
+RaycastTriangle    
+先计算射线与AABB是否相交，叶子节点做射线计算三角面是否相交
+
+FrustumCulling    
+主要计算截头体是否与AABB相交。每个截头体有6个面。    
 
 ## **2. BVH构造**  
+这里只简单介绍BVH的实现框架，并没有结合SAH算法。  
+
+
 
 
 
