@@ -4,19 +4,15 @@
 
 基础几何部分分2D和3D介绍，计算几何主要包含了常用的算法。  
 
+[几何基础认识：点，向量，矩阵，线和曲线](base.md)  
+
 ## **1. 基础几何**  
 
 1. 2d几何  
-    1. [二维矩阵](2d/2d_matrix.md)  
-    2. [点和向量](2d/2d_vector.md)  
-    3. [线和曲线](2d/2d_line.md)  
-    4. [三角形和多边形](2d/2d_polygon.md)  
-    5. [矩形和正方形](2d/2d_rectangle.md)  
-    6. [圆形和椭圆形](2d/2d_circle.md)  
+    1. [三角形和多边形](2d/2d_polygon.md)  
+    2. [矩形和正方形](2d/2d_rectangle.md)  
+    3. [圆形和椭圆形](2d/2d_circle.md)  
 2. 3d几何  
-    1. [三维矩阵](3d/3d_matrix.md)  
-    2. [点和向量](3d/3d_vector.md)  
-    3. [线和曲线](3d/3d_line.md)  
     4. [面和三角面和曲面](3d/3d_plane.md)  
     5. [长方体和立方体](3d/3d_cube.md)  
     6. [球，椭球，胶囊体，圆柱体，凸包](3d/3d_volume.md)  
