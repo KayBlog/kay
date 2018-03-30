@@ -592,7 +592,497 @@ FrustumCulling
 主要计算截头体是否与AABB相交。每个截头体有6个面。    
 
 ## **2. BVH构造**  
-这里只简单介绍BVH的实现框架，并没有结合SAH算法。  
+
+KDTree这类BSP结构是针对空间划分，BVH是针对物体划分的层次结构。接下来简单介绍BVH的实现框架，使用简单的AABB的中心点和最长轴来划分，并没有结合SAH算法。BVH主要在构造和遍历上设计   
+先看下结构图：  
+![bvh简单设计](images/bvh.png)  
+
+BVHTree是基于BVHObject列表(使用BVHAABB)构建的由BVHNode节点组成的一棵树。这里的BVHObject是一个抽象类，具体的物体由BVHTriangleObject和BVHAABBObject,以及其他的物体继承。另外，BVEntry是构建树时的记录值，记录当前节点父节点值，右孩子值，叶结点包含的物体数量。Ray用来做光线遍历交叉的物体，BVHTravel记录射线交叉的物体索引和距离值   
+
+BVHTravel类
+```
+class BVHTraversal
+{
+    public int mIndex;
+    public float mLength;
+    public BVHTraversal() { }
+    public BVHTraversal(int idx, float len)
+    {
+        mIndex = idx;
+        mLength = len;
+    }
+}
+```
+
+BVEntry类
+```
+class BVHEntry
+{
+    public uint mParent;
+    public uint mStart;
+    public uint mEnd;
+}
+```
+
+BVHAABB类
+```
+public class BVHAABB
+{
+    public Vector3 mMin;
+    public Vector3 mMax;
+    public Vector3 mExtent;
+    public BVHAABB(Vector3 min, Vector3 max)
+    {
+        mMin = min;
+        mMax = max;
+        mExtent = mMax - mMin;
+    }
+    public BVHAABB(Vector3 point)
+    {
+        mMin = point;
+        mMax = point;
+        mExtent = mMax - mMin;
+    }
+
+    public void ExpandToInclude(Vector3 p)
+    {
+        mMin = Vector3.Min(mMin, p);
+        mMax = Vector3.Max(mMax, p);
+        mExtent = mMax - mMin;
+    }
+
+    public void ExpandToInclude(GeoAABB3 b)
+    {
+        mMin = Vector3.Min(mMin, b.mMin);
+        mMax = Vector3.Max(mMax, b.mMax);
+        mExtent = mMax - mMin;
+    }
+
+    public int MaxDimension()
+    {
+        int result = 0;
+        if (mExtent.y > mExtent.x)
+        {
+            result = 1;
+            if (mExtent.z > mExtent.y)
+            {
+                result = 2;
+            }
+        }
+        else
+        {
+            if (mExtent.z > mExtent.x)
+            {
+                result = 2;
+            }
+        }
+        return result;
+    }
+}
+```
+
+BVHNode类：
+```
+public class BVHNode
+{
+    public BVHAABB mBox;
+    public uint mStartIndex;
+    public uint mLeafCount;
+    public uint mRightOffset;
+}
+```
+
+再次介绍一下基础类的作用：  
+BVHNode: 记录了自身的AABB，包含的   
+BVHAABB: 记录了长方体的最小点min和最大点max，根据点或者长方体合并来扩展。可以获得3个轴最长的那一个轴的索引  
+BVEntry: bvh构造时，记录父节点索引，物体的起始和结束索引的一个区间。   
+BVHTraversal:  记录射线与物体相交的索引和距离  
+
+接下里看物体类：  
+```
+public class GeometricObject
+{
+    public static Vector2 MAX_VECTOR2 = new Vector2(float.MaxValue, float.MaxValue);
+    public static Vector2 MIN_VECTOR2 = new Vector2(float.MinValue, float.MinValue);
+    public static Vector3 MAX_VECTOR3 = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+    public static Vector3 MIN_VECTOR3 = new Vector3(float.MinValue, float.MinValue, float.MinValue);
+
+    public GeoShape mShapeType;
+    private Dictionary<GeoShape, GeoShape> _type_insect = new Dictionary<GeoShape, GeoShape>();
+    static GeometricObject()
+    {
+        RegisterInsect();
+    }
+
+    public GeometricObject(GeoShape shape)
+    {
+        mShapeType = shape;
+    }
+
+    public GeometricObject()
+    {
+        mShapeType = GeoShape.NONE;
+    }
+
+    public static void RegisterInsect()
+    {
+        // 添加 碰撞类型之间的限制
+    }
+
+    public virtual bool IsIntersect(ref GeoRay2 dist, ref GeoInsectPointArrayInfo insect)
+    {
+        return false;
+    }
+
+    public virtual bool IsIntersect(ref GeoRay3 dist, ref GeoInsectPointArrayInfo insect)
+    {
+        return false;
+    }
+    // 点在obj里面
+    public virtual bool IsPointIn(ref Vector2 p)
+    {
+        // to do
+        return false;
+    }
+    public virtual bool IsPointIn(ref Vector3 p)
+    {
+        // to do
+        return false;
+    }
+
+    // 点在obj上面
+    public virtual bool IsPointOn(ref Vector3 p)
+    {
+        // to do
+        return false;
+    }
+    public virtual bool IsPointOn(ref Vector2 p)
+    {
+        // to do
+        return false;
+    }
+
+    // 点距离obj最短距离
+    public virtual float PointClosestDistance(ref Vector2 p)
+    {
+        // to do
+        return 0.0f;
+    }
+    public virtual float PointClosestDistance(ref Vector3 p)
+    {
+        // to do
+        return 0.0f;
+    }
+
+    // 点距离obj垂直距离
+    public virtual float PointToDistance(ref Vector2 p)
+    {
+        // to do
+        return 0.0f;
+    }
+    public virtual float PointToDistance(ref Vector3 p)
+    {
+        // to do
+        return 0.0f;
+    }
+
+    // 点的法向
+    public virtual Vector2 GetNormal(ref Vector2 p)
+    {
+        // to do
+        return MAX_VECTOR2;
+    }
+
+    public virtual Vector2 GetNormal(ref Vector3 p)
+    {
+        // to do
+        return MAX_VECTOR3;
+    }
+}
+public class BVHObject : GeometricObject
+{
+    public BVHObject() : base()
+    {
+
+    }
+    public BVHObject(GeoShape shape)
+        : base(shape)
+    {
+
+    }
+
+    // 中心点
+    public virtual Vector3 GetCenter()
+    {
+        return MAX_VECTOR3;
+    }
+
+    // AABB 包围盒
+    public virtual GeoAABB3 GetAABB()
+    {
+        return null;
+    }
+}
+```
+GeometricObject 对物体的一个抽象封装，包含了物体与物体之间是否相交，点和物体之间的关系，点在物体上的法线方向等  
+BVHObject 继承 GeometricObject， 子类需要实现 获取物体的中心点和包围体   
+
+分析构建的代码：  
+```
+// 这里先初始化一个数组，桟操作
+static BVHEntry[] PREALLOC;
+static BVHTree()
+{
+    PREALLOC = new BVHEntry[128];
+    for (int i = 0; i < 128; ++i)
+    {
+        PREALLOC[i] = new BVHEntry();
+    }
+}
+// 构建树的过程  
+public void Build()
+{
+    int stackptr = 0;
+    uint Untouched = 0xffffffff;
+    uint TouchedTwice = 0xfffffffd;
+    // 根节点开始，区间为 0 - mBuildPrims.Count，父节点 标记为 0xfffffffc 
+    PREALLOC[stackptr].mStart = 0;
+    PREALLOC[stackptr].mEnd = (uint)mBuildPrims.Count;
+    PREALLOC[stackptr].mParent = 0xfffffffc;
+    stackptr++;
+    // bvh树，每一个Object只会划分到一个Node里(没有考虑到物体与物体之间相交的处理)
+    // 则最多能构造的节点数为 2^n - 1 
+    List<BVHNode3> buildnodes = new List<BVHNode3>(mBuildPrims.Count * 2);
+    while (stackptr > 0)
+    {
+        // stackptr 索引可以看成是 当前桟里有多少个节点
+        // 每次遍历一个时，都会 -- 
+        // 每次添加一个时，都会 ++
+        // 遍历过程中，bnode记录当前栈顶的元素为当前元素
+        BVHEntry bnode = PREALLOC[--stackptr];
+        // 获取当前Entry物体区间并计算物体个数
+        uint start = bnode.mStart;
+        uint end = bnode.mEnd;
+        uint nPrims = end - start;
+        // 元素会转化成节点，则每次遍历栈顶，都会产生一个Node，故mNumNodes++
+        mNumNodes++;
+        BVHNode3 node = new BVHNode3();
+        node.mStartIndex = start;
+        node.mLeafCount = nPrims;
+        // 初始值为 Untouched
+        node.mRightOffset = Untouched;
+        // 对目前所包含的所有节点，计算AABB和中心点
+        BVHAABB3 bb = new BVHAABB3(mBuildPrims[(int)start].GetAABB().mMin, mBuildPrims[(int)start].GetAABB().mMax);
+        BVHAABB3 bc = new BVHAABB3(mBuildPrims[(int)start].GetCenter(), mBuildPrims[(int)start].GetCenter());
+        for (uint p = start + 1; p < end; ++p)
+        {
+            // AABB扩张
+            bb.ExpandToInclude(mBuildPrims[(int)p].GetAABB());
+            // 根据中心点计算分割的中心点
+            bc.ExpandToInclude(mBuildPrims[(int)p].GetCenter());
+        }
+        // 计算得到当前节点的AABB
+        node.mBox = bb;
+        // 节点所包含的物体如果小于设定的叶节点包含物体的最大数量
+        // 则作为一个叶子节点
+        if (nPrims <= mNodeMaxLeafSize)
+        {
+            // 叶子节点没有孩子，则右孩子偏移值记录为 0
+            node.mRightOffset = 0;
+            mNumLeafs++;
+        }
+        // 将节点添加进来
+        buildnodes.Add(node);
+        // 记录父节点关于右孩子结点相对父结点的偏移值 mRightOffset
+        // 第一次为左孩子，相对父结点的偏移值为1
+        // 每个父节点最多被两次 hit 
+        if (bnode.mParent != 0xfffffffc)
+        {
+            // 不是根节点时，做一个操作
+            // Untouched为0xffffffff值
+            // Untouched--为0xfffffffe
+            // Untouched--为0xfffffffc == TouchedTwice 
+            // 当前节点处理时，会对父类做一步处理，确定父类的右孩子索引值  
+            buildnodes[(int)bnode.mParent].mRightOffset--;
+            if (buildnodes[(int)bnode.mParent].mRightOffset == TouchedTwice)
+            {
+                // 父节点被两个节点进一步处理，则可以确定右孩子节点
+                // 当前节点索引为 mNumNodes - 1
+                // 记录与父节点的偏移值时，mNumNodes - 1 - bnode.mParent 
+                // 则后期父节点找右孩子时，通过自己的索引加上偏移值就可以得到右孩子
+                buildnodes[(int)bnode.mParent].mRightOffset = (uint)mNumNodes - 1 - bnode.mParent;
+            }
+        }
+        // 叶结点的处理
+        if (node.mRightOffset == 0)
+            continue;
+        // 选择合适的分割维度，最长轴
+        uint split_dim = (uint)bc.MaxDimension();
+        // 根据选取的轴确定分割点(中心点)
+        float split_coord = 0.5f * (bc.mMin[(int)split_dim] + bc.mMax[(int)split_dim]);
+        uint mid = start;
+        // 交换 start 和 end 之间 的数据
+        for (uint i = start; i < end; ++i)
+        {
+            // 这里遍历区间所有的物体，根据物体中心在这个维度上的坐标值与分割轴的值的大小关系
+            // 以分割轴为中间点，将所有物体分成两组  
+            // 注意： 一个物体不会记录两次，则分组后的大小与原来的大小是相等的
+            if (mBuildPrims[(int)i].GetCenter()[(int)split_dim] < split_coord)
+            {
+                if (i != mid)
+                {
+                    BVHObject3 temp = mBuildPrims[(int)i];
+                    mBuildPrims[(int)i] = mBuildPrims[(int)mid];
+                    mBuildPrims[(int)mid] = temp;
+                }
+                ++mid;
+            }
+        }
+        // 对上面的start 和 end 区间分组完成
+        // 边界检测
+        if (mid == start || mid == end)
+        {
+            mid = start + (end - start) / 2;
+        }
+        // 左孩子和右孩子继续处理
+        // 右孩子
+        PREALLOC[stackptr].mStart = mid;
+        PREALLOC[stackptr].mEnd = end;
+        PREALLOC[stackptr].mParent = (uint)mNumNodes - 1;
+        stackptr++;
+        // 左孩子
+        PREALLOC[stackptr].mStart = start;
+        PREALLOC[stackptr].mEnd = mid;
+        PREALLOC[stackptr].mParent = (uint)mNumNodes - 1;
+        stackptr++;
+    }
+    if (mFlatTreeList != null)
+        mFlatTreeList.Clear();
+    mFlatTreeList = new List<BVHNode3>(mNumNodes);
+    for (uint n = 0; n < mNumNodes; ++n)
+    {
+        mFlatTreeList.Add(buildnodes[(int)n]);
+    }
+}
+```
+需要注意：  
+1. 右孩子先入栈，左孩子后入栈；则取栈顶，左孩子现处理。则左孩子和父节点的索引值相差1  
+2. 处理左孩子时，父节点`buildnodes[(int)bnode.mParent].mRightOffset--`等于0xfffffffe。  
+3. 左孩子处理优先，类似深度搜索，然后回溯到处理右孩子   
+
+接下里看一下射线检测代码：
+```
+public bool GetIntersection(GeoRay ray, ref GeoInsectPointArrayInfo intersection, bool occlusion)
+{
+    // 初始化相交信息
+    intersection.mIsIntersect = false;
+    intersection.mLength = 999999999.0f;
+    intersection.mHitObject2 = null;
+    // closer是左孩子
+    // other是右孩子
+    int closer, other;
+
+    BVHTraversal[] todo = new BVHTraversal[64];
+    todo[0] = new BVHTraversal();
+    int stackptr = 0;
+    todo[stackptr].mIndex = 0;
+    todo[stackptr].mLength = -9999999.0f;
+    // 开始时从根节点开始处理
+    while (stackptr >= 0)
+    {
+        // 这个是父节点索引
+        int ni = todo[stackptr].mIndex;
+        float near = todo[stackptr].mLength;
+        stackptr--;
+        BVHNode3 node = mFlatTreeList[ni];
+        // 对叶节点做相交测试
+        if (node.mRightOffset == 0)
+        {
+            bool hit = false;
+            // 对叶结点的物体做进一步处理
+            for (int o = 0; o < node.mLeafCount; ++o)
+            {
+                GeoInsectPointArrayInfo current = new GeoInsectPointArrayInfo();
+                BVHObject3 obj = mBuildPrims[(int)node.mStartIndex + o];
+                // 是否相交
+                hit = obj.IsIntersect(ref ray, ref current);
+                if (hit)
+                {
+                    // occlusion 表示找到即可
+                    if (occlusion)
+                    {
+                        intersection = current;
+                        return true;
+                    }
+                    // 记录最短的相交距离
+                    if (current.mLength < intersection.mLength)
+                    {
+                        intersection = current;
+                    }
+                }
+            }
+        }
+        else
+        {
+            // 左孩子节点索引
+            closer = ni + 1;
+            // 右孩子节点索引
+            other = ni + (int)node.mRightOffset;
+            GeoInsectPointArrayInfo in1 = new GeoInsectPointArrayInfo();
+            GeoInsectPointArrayInfo in2 = new GeoInsectPointArrayInfo();
+            // 对左孩子做测试
+            bool hitc0 = GeoRayUtils.IsRayInsectAABB3(ray.mOrigin, ray.mDirection, mFlatTreeList[closer].mBox.mMin, mFlatTreeList[closer].mBox.mMax, ref in1);
+            // 对右孩子做测试
+            bool hitc1 = GeoRayUtils.IsRayInsectAABB3(ray.mOrigin, ray.mDirection, mFlatTreeList[other].mBox.mMin, mFlatTreeList[other].mBox.mMax, ref in2);
+            if (hitc0 && hitc1)
+            {
+                // 若都有相交的处理
+                // 选择近的先处理
+                float l0 = (in1.mHitGlobalPoint[0] - ray.mOrigin).magnitude;
+                float l2 = (in2.mHitGlobalPoint[0] - ray.mOrigin).magnitude;
+                if (l2 < l0)
+                {
+                    float temp = l0;
+                    l0 = l2;
+                    l2 = temp;
+                    int itemp = closer;
+                    closer = other;
+                    other = itemp;
+                }
+                // 进一步处理左右孩子节点
+                todo[++stackptr] = new BVHTraversal(other, l2);
+                todo[++stackptr] = new BVHTraversal(closer, l0);
+            }
+            else if (hitc0)
+            {
+                // 进一步处理左孩子节点
+                float l0 = (in1.mHitGlobalPoint[0] - ray.mOrigin).magnitude;
+                todo[++stackptr] = new BVHTraversal(closer, l0);
+            }
+            else if (hitc1)
+            {
+                // 进一步处理右孩子节点
+                float l2 = (in2.mHitGlobalPoint[0] - ray.mOrigin).magnitude;
+                todo[++stackptr] = new BVHTraversal(other, l2);
+            }
+        }
+    }
+    // 最终判断有没有相交
+    if (intersection.mHitObject2 != null)
+    {
+        intersection.mHitGlobalPoint.Clear();
+        intersection.mHitGlobalPoint.mPointArray.Add(ray.mOrigin + ray.mDirection * intersection.mLength);
+        intersection.mIsIntersect = true;
+    }
+    return intersection.mHitObject2 != null;
+}
+```
+1. 检测相交的遍历就显得很简洁，主要是与左右孩子做判断，有相交则一直处理直到叶结点停止  
+2. 由于两个孩子自身可能相交，不能以AABB的长度值的比较来判断最短的AABB距离，从而剔除后面相交的AABB  
+
+
+
+
 
 
 
