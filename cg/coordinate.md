@@ -100,7 +100,7 @@ GetInverseViewMatrix().TransformVector(screen, &screen);
 ```
 if (screen.w() != 0.0f)
 {
-    float r = FastMath::FastReverse(screen.w());
+    float r = FastReverse(screen.w());
     screen.x() *= r;
     screen.y() *= r;
     screen.z() *= r;
