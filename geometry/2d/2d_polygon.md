@@ -32,7 +32,7 @@ bool IsPointInTriangle2(Vector2 p1, Vector2 p2, Vector2 p3, ref Vector2 p)
     float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
     float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
     // Check if point is in triangle
-    return (u >= 0.0f) && (v >= 0.0f) && (u + v <= 1.0f);
+    return (u >= 0.0f) && (v >= 0.0f) && (u + v <= 1.0f); 
 }
 ```
 **可以通过点在三条边向量的左侧和右侧来判断或者面积法来判断**  
@@ -40,6 +40,27 @@ bool IsPointInTriangle2(Vector2 p1, Vector2 p2, Vector2 p3, ref Vector2 p)
 2. 三角形面积  
 
 两条相邻的边向量求叉积取绝对值乘以0.5即可得到面积   
+
+3. 判断三角形的方向  
+
+现在三个顶点的顺序为a -> b -> c -> a  
+只需要判断 c在ab的哪一侧即可  
+Vector2 ba = b - a  
+Vector2 ca = c - a  
+```
+float Cross(ba, ca)
+{
+    return ba[0] * ca[1] - ba[1] * ca[0];
+}
+```
+如果大于0，则为逆时针；反之，顺时针。  
+
+
+4. 点到三角形的最短距离   
+
+![分区](images/triangle_mask.png)   
+对区域码分别作处理  
+
 
 **多边形**  
 
@@ -168,3 +189,7 @@ bool IsPointInPolygon2(GeoPointsArray2 poly, ref Vector2 point)
     return res;
 }
 ```
+
+5. 多边形在方向dir上找到最远点farthestPoint  
+
+
