@@ -11,7 +11,7 @@
 1. 2d几何  
     1. [三角形和多边形](2d/2d_polygon.md)  
     2. [矩形和正方形](2d/2d_rectangle.md)  
-    3. [圆形和椭圆形](2d/2d_circle.md)  
+    3. [圆形，椭圆形和胶囊形](2d/2d_circle.md)  
 2. 3d几何  
     4. [面,三角面,曲面,网格面](3d/3d_plane.md)  
     5. [长方体和立方体](3d/3d_cube.md)  

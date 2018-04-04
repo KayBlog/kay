@@ -51,6 +51,7 @@ public static bool IsPointInRect(Rect rect, Vector2 p)
 
 通过u，v值可判断点在哪一个象限，然后象限中的矩形的点就是最短距离的那一个    
 ```
+0 < u < 1, 0 < v < 1 表示点在内部  
 u > 0, v > 0  
 u > 0, v < 0  
 u < 0, v > 0  
