@@ -11,3 +11,7 @@
 [1. 认识场景](scene.md)  
 [2. 模型文件数据格式以及解析处理](model_skeleton.md)  
 [3. 材质系统](material.md)  
+
+优化阶段：  
+[1. Mipmap和LOD](mip_lod.md)   
+[2. 延迟光照和延迟着色](shader.md)   

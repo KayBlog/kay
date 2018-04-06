@@ -10,4 +10,3 @@
 [6. 行为树和状态机](behaviour_state_ai.md)  
 [7. 客户端网络](network.md)  
 [8. UI设计](ui.md)  
-[9. 延迟光照和延迟着色](shader.md)   
