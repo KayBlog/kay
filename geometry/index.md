@@ -16,7 +16,6 @@
     4. [面,三角面,曲面,网格面](3d/3d_plane.md)  
     5. [长方体和立方体](3d/3d_cube.md)  
     6. [球，椭球，胶囊体，圆柱体，凸包](3d/3d_volume.md)  
-3. [GJK和EPA](gjk_epa.md)  
 
 ## **2. 计算几何**  
 
@@ -28,4 +27,5 @@
 6. [中轴提取](cg/center_axis_deflate.md)    
 7. [中轴膨胀](cg/center_axis_inflate.md)    
 8. [点云处理](cg/point_cloud.md)    
-9. [凸多边形或者凸包相交检测](gjk_epa.md)  
+9. [凸多边形或者凸包相交检测](cg/gjk_epa.md)  
+10. [多边形扫描](cg/polygon_raster.md)   
