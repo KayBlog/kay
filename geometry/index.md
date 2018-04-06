@@ -29,3 +29,4 @@
 8. [点云处理](cg/point_cloud.md)    
 9. [凸多边形或者凸包相交检测](cg/gjk_epa.md)  
 10. [多边形扫描](cg/polygon_raster.md)   
+11. [泰森多边形](cg/voronoi.md)    
