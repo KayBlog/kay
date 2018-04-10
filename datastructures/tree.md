@@ -388,3 +388,8 @@ void Tree<TreeType>::DeleteDecendants(void)
         delete output[i];
 }
 ```
+
+写在最后，介绍一个接口丰富的tree.hh[源码](http://tree.phi-sci.com/documentation.html)   
+
+
+

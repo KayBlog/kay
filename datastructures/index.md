@@ -7,4 +7,5 @@
 2. [并查集](union_find.md)  
 3. [堆和优先队列](heap.md)  
 4. [搜索算法](serach.md)  
-4. [树](tree.md)  
+5. [树](tree.md)   
+6. [排序](sort.md)   
