@@ -166,52 +166,119 @@ void CtfEnemy::update (const float currentTime, const float elapsedTime)
 2. 确定避开障碍物的方向。计算行人所在位置点到椭圆的两条切线t1和t2，可以获得两个切点. 再通过计算目标点到障碍物的两个切线t3和t4，也得到两个切点，然后对应连接两个切点构成两条线段t5和t6.   
 3. t1+t3+t6和t2+t4+t5的长度计算权重值，权重值小的表明距离短，则选择该切线为行走方向，将切点作为当前目标点。  
 4. 走到切点后，再按照第3步计算  
-
+如果在附近加上其他的行人，则为了避开与其他行人碰撞，也需要做一些额外的控制。  
 
 核心的数据分析如下   
 1. Walker的基础数据   
 ```
-bool m_finish;
-bool m_in_door;
-bool m_Cruise;
-bool m_Hunter;
-float m_norm_speed;
-float m_max_speed;
-float m_size;
-bool m_idle; //是否等待状态。当行人在路点前排队时每寻路一次进入进入等待状态约2s(=m_idle_period)
+bool m_finish; // 是否完成追击
+bool m_in_door; // 是否在门内  
+bool m_Cruise; // 是否是巡逻者  
+bool m_Hunter; // 是否是追击者  
+float m_norm_speed; // 正常速度  
+float m_max_speed; // 最大行走速度
+float m_size; // 尺寸大小
+bool m_idle; //行人在路点前排队时每寻路一次进入进入等待状态约2s(m_idle_period)
 float m_last_idle_time; //上次开始等待时刻
 float m_idle_period; //等待持续时间
 int m_steps_since_last_avoid_obstacle; //自上次绕行障碍物持续步数。
-
-float m_lazy; //惰性
-bool m_hyperactivity; //好动，急躁，不能等候排队。
-bool m_initiative_avoid; //主动绕行障碍物：只要前方视线有障碍物就选择绕行方向，否则只有走到障碍物跟前才转弯。     
+float m_lazy; // 惰性
+bool m_hyperactivity; // 好动，急躁，不能等候排队。
+bool m_initiative_avoid; // 主动绕行障碍物：只要前方视线有障碍物就选择绕行方向，否则只有走到障碍物跟前才转弯。     
 float m_sight_distance; //视距，用于障碍物绕行，超出范围不再判断远近(m)
 float m_perspective;//动态视角，用于行人避让（deg)    
-HexSimNavigation m_sim_nav;    
+HexSimNavigation m_sim_nav; // 导航路点   
 struct WalkerData
 {
-    HexSimWalkingParam m_walking_param_current;
-    HexSimWalkingParam m_walking_param_estimate;
-    HexVector3 m_temp_goal_target;
+    HexSimWalkingParam m_walking_param_current; // 当前位置，速度，方向等信息
+    HexSimWalkingParam m_walking_param_estimate;// 预期位置，速度，方向等信息
+    HexVector3 m_temp_goal_target; // 切点位置
 } m_data;
 
-EWalkingStat m_walking_stat;
-
-float m_min_distance_to_obstacle;
-
-float m_current_tick; // total simulation time in seconds
+EWalkingStat m_walking_stat; // 当前行人的状态(躲避障碍物，躲避行人等)
+float m_min_distance_to_obstacle;// 与障碍物最短距离。
+float m_current_tick; // 模拟时长
 bool m_last_decision; // 上次绕行决策，true为左侧绕行，false为右侧绕行
-float m_last_decision_time; // last decision time in seconds
-float m_decision_delay; // seconds delayed before reselect a path
+float m_last_decision_time; // 上次决策时间
+float m_decision_delay; // 重新选择路径的时间间隔  
 float m_inertia; // 惯性，取值[0，1]，用于保持上次选择的路径不易改变。
-HexSimBase *m_obstacle;
+HexSimBase *m_obstacle; // 记录躲避的障碍物
 ```
 
+2. HexSimWorld基础数据   
+```
+DataStructures::List<HexSimObstacle*> m_sim_objects;  // 一般的障碍物
+DataStructures::List<HexSimObstacle*> m_obstacle_of_facilities;// 设备障碍物(能运动)
+DataStructures::List<HexSimWayNode*> m_sim_way_nodes;// 路点
+DataStructures::LinkedList<HexSimWalker*> m_active_walkers; //当前寻找的行人
+DataStructures::LinkedList<HexSimWalker*> m_finished_walkers; //找到后的行人
+HexFlowBuckets m_flow_buckets;// 空间哈希分区块  
+float m_average_norm_speed;// 平均速度
+float m_time_to_seek_goal;// 找到时长
+bool m_first_run;// 初始化时使用，是否初始化设备  
+```
 
+3. HexFnSimWorld基础数据   
+```
+HexSimWorld *m_world_ptr; // 保留了基础世界的实例
+DataStructures::List<HexSimWalker*> m_nearby_walkers; //邻域行人
+float m_distance_to_turn; // 转向系数距离(m)
+float m_distance_to_next; // 行人与路点距离小于此值时，目标改为下一路点。
 
+float m_time_to_seek_goal;//寻径时间(sec)
+float m_time_to_avoid_obstacle;//根据当前速度估算与障碍物碰撞的时间，在此时间之内做绕行计算(sec)
+float m_time_to_avoid_walker;//估算与行人相遇时间，在此时间之内做行人时间相互影响计算(sec)
+float m_adjacent_distance; //行人邻域，用于避让(m)
+float m_min_between_walkers;//行人间的最小距离(m)
+float m_distance_to_stop_avoid_obstacle;//当行人距目标点小于此值时，不再做绕行计算。
+float m_distance_to_avalanche;//当行人在目标点等候长度大于此距离时会触发雪崩效应，即原有排队被打乱，后面行人拥到前面(m)
+float m_avoid_walker_speed_fact;//行人（左右）避让速度因子，乘以正常行走速度即为避让速度(m/s)
+float m_avoid_walker_step;//行人（左右）必然距离(m)
+float m_simulation_time; // 模拟时长
+```
 
+4. HexSimWayNode和HexSimNavigation基础数据   
+这里的tree是一个类似stl的树，做了很多扩展[tree.hh源码](http://tree.phi-sci.com/documentation.html)   
+```
+HexSimNavigation数据
+{
+    tree<HexSimWayNode*> m_way_points; // 路点以树的形式存在
+    tree<HexSimWayNode*>::iterator m_current_iter;
+    DataStructures::List<tree<HexSimWayNode*>::iterator> m_optional_targets;
+}
+HexSimWayNode数据
+{
+    HexSimWayNode *m_parent; //父节点
+    bool m_inactivating; //是否激活状态
+    //到这个点的长度值
+    float m_length;
+    //距离偏置值: distance = length + m_weight
+    float m_weight;
+    //距离系数: distance = length * m_factor
+    float m_factor;
+    // 下面三个参数可以构造一个椭圆。默认是一个点，即两个半径等于0  
+    //target way point
+    HexVector3 *m_point;
+    //radius of point
+    float m_longradius;
+    float m_shortradius;
+    //旋转角度，针对长轴而言。
+    float m_rotation;
+    float m_crowd; //拥挤度，每一个等待行人对拥挤度贡献为1，路点附近非等待行人对拥挤度贡献为0.1，单位拥挤度对距离的贡献为1
+    bool m_transparent; //透明路点，路径决策由下一路点状态决定。
+}
 
+```
+
+5. HexFlowBuckets基础数据   
+```
+HexHashTableT<HexBucket*> m_hash_buckets;// 块的散列表
+DataStructures::List<HexBucket*> m_buckets;// 块的列表
+float m_adjacent_distance; // 块的大小
+int m_ad;// 块的大小，整数表示
+```
+
+在计算行人行走方向时，完全是一个控制系统，根据不同的处境标记行人的状态，在不同状态下做不同的计算。这里是一个积分过程，每一帧都对行人做处理。  
 
 另外。附上Fast AStar基础算法：   
 这里用一维数组来表示存放的Grid    
