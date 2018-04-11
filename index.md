@@ -15,6 +15,7 @@ Email:**kay-ang@qq.com**
 
 **第一阶段：**  
 
+0. [线性代数](math/index.md)   
 1. [数据结构与算法](datastructures/index.md)  
 2. [基础几何与计算几何](geometry/index.md)  
 3. [图形学与OpenGL](cg/index.md)  
