@@ -4,5 +4,4 @@
 
 1. [麻将算法](majiang.md)  
 2. [傅立叶变换](Fourier.md)  
-3. [最小二乘](min_least_square.md)  
-4. [高斯模糊](gaussian_blur.md)  
+3. [高斯模糊](gaussian_blur.md)  
