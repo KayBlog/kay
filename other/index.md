@@ -8,3 +8,4 @@
 4. [蚁群算法](ant.md)  
 5. [遗传算法](genus.md)  
 6. [模拟退火算法](simulator_fire.md)         
+7. [禁忌搜索](search.md)   
