@@ -19,15 +19,19 @@
 5. 牛顿三大定律    
 6. 运动学和动力学   
 7. 离散和连续碰撞CCD   
-8. 影响时间TOI   
+8. 碰撞时间TOI   
+9. 约束Constraint   
 
-注意：在研究物理引擎源代码之前，需要了解一些数据结构和算法：   
-1. 并查集  
-2. BVH   
-3. Jacobian矩阵   
-4. Projected Gauss-Seidel迭代   
-5. MLCP和LCP线性互补问题   
-6. 单纯型求解线性规划问题   
+注意：在研究物理引擎源代码之前，需要了解：   
+1. Union Find(并查集)   
+2. BVH(层次包围盒)   
+3. Jacobian(雅可比矩阵）   
+4. Projected Gauss-Seidel(高斯迭代)      
+5. MLCP和LCP(混合，线性互补问题)   
+6. Simplex Method(单纯形法, LP问题)   
+7. Sweep And Prune(SAP)   
+8. Geometry Intersection(几何体相交检测，GJK, EPA, SAT)   
+9. Approximate Convex Decomposition(近似凸分解)    
 
 **物理模拟管线**   
 ![物理模拟](images/pipeline.png)   

@@ -5,13 +5,17 @@ Thank you.
 
 Email:**kay-ang@qq.com**
 
-## 四阶段  
+博客中涉及到的代码编程语言：   
+1. C++   
+2. Java  
+3. C#     
+4. Sql  
 
-博客中涉及到的代码，主要涉及到C++，JAVA和C#开发语言。  
-涉及到的书籍：  
-// kay to do  
 涉及到的开源项目：  
-// kay to do  
+1. OpenSteer(游戏AI)   
+2. Bullet(物理引擎)   
+3. Gameplay3D(游戏引擎)   
+4. Recast(导航网格)   
 
 **第一阶段：**  
 
@@ -38,6 +42,8 @@ Email:**kay-ang@qq.com**
 
 13. [其他](other/index.md)  
 
-## 个人履历  
+## Resume  
 
-// kay to do
+[1. 中文](resume/kay_zh.pdf)   
+
+[2. 英文](resume/kay_en.pdf)   
