@@ -413,9 +413,10 @@ void VertexAttributeBinding::SetVertexAttribPointer(GLuint indx, GLint size, GLe
 1. 此篇介绍了材质文件格式和加载过程,创建 Effect，创建Program，并保存Uniform和Attribute的信息   
 2. 模型设置材质时初始化创建 VertexAttributeBinding， 创建 VAO且激活和设置顶点属性信息  
 3. RenderState绑定代码中  
-    1. 设置OpenGL状态  
+    a. 设置OpenGL状态   
+
 ```
-    void RenderState::StateBlock::Restore(long stateOverrideBits)
+void RenderState::StateBlock::Restore(long stateOverrideBits)
 {
     GP_ASSERT(mDefaultState);
 
@@ -505,6 +506,7 @@ void VertexAttributeBinding::SetVertexAttribPointer(GLuint indx, GLint size, GLe
     }
 }
 ```
+
 2. 设置Uniform值，这里需要结合Node信息  
 3. 贴图的Uniform设置  
 ```
