@@ -34,7 +34,7 @@ float Vector2::DotProduct(const Vector2 &v) const
 }
 ```
 
-3. 两个向量做叉积，求面积或者求法线向量或者旋转轴，可以对有符号的面积值判断方向  
+3. 两个向量做叉积，求面积或者求法线向量或者旋转轴，可以对有符号的面积值判断方向   
 ```
 2d下
 float Vector2::CrossProduct(const Vector2 &v) const
@@ -50,8 +50,9 @@ inline void VectorCrossProduct3f(const Point3f p1, const Point3f p2, Point3f vRe
         vResult[1] = p1[2] * p2[0] - p1[0] * p2[2];
         vResult[2] = p1[0] * p2[1] - p1[1] * p2[0];
 }
-p1到p2叉积得到的仍是一个向量，这个向量垂直于p1和p2确定的平面，即得到平面的法向量
+p1到p2叉积得到的仍是一个向量，这个向量垂直于p1和p2确定的平面，即得到平面的法向量   
 ```
+
 
 **2. 矩阵变换**  
 
@@ -108,6 +109,7 @@ BSpline曲线包含的信息多，且改变一个控制点只会影响局部曲�
 BSPline有控制点数据，Knot数据和一个度k(可以看成曲线的次数)。  
 根据控制点求Knot数据，如图：  
 ![大致描述](images/spline.png)  
+
 ```
     public void CalculateKnots()
     {
@@ -203,9 +205,11 @@ private float CalculateDeboorValue(int i, int k, float knot)
 ```
 这里面主要涉及到一个递推公式Deboor:  
 ![递推公式](images/deboor.png)  
+
 上面代码可以做一些优化，对计算过的值做一个缓存，可以加速。便于理解，这里没做处理  
 
 ## **4. 线**  
+
 介绍线的相交，点到线的距离和点是否在线上的判断   
 
 **4.1 线与线相交**  
@@ -235,6 +239,7 @@ f2 = Dot(dir1,dir2),
 f3ab = Dot(p3-p1,dir1),   
 f3cd = Dot(p3-p1,dir2)     
 则   
+
 ```
    t1 * f1ab - t2 * f2 = f3ab
    t1 * f2 - t2 * f1cd = f3cd
@@ -262,8 +267,10 @@ f3cd = Dot(p3-p1,dir2)
              ]
                / |A|
 ```
+
 根据克拉默法则可以求得 参数 t1 和 t2 , 从而带入参数得到两个垂足点   
 以上公垂线段的求取具有普遍性   
+
 ```
 public static bool LineLineClosestPoint(Vector3 line1, Vector3 line2, Vector3 line3, Vector3 line4, out Vector3 closest1, out Vector3 closest2)
 {
@@ -293,6 +300,7 @@ public static bool LineLineClosestPoint(Vector3 line1, Vector3 line2, Vector3 li
     return true;
 }
 ```
+
 计算2d情况时可以将点扩展到3d上，这样可以统一接口。如果对计算要求较高，则需要单独设计，这里做统一处理。平行问题可以提前处理，下面的介绍不讨论平行问题。  
 
 1. 直线与直线相交  
