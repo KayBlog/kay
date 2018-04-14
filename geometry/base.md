@@ -36,23 +36,19 @@ float Vector2::DotProduct(const Vector2 &v) const
 
 3. 两个向量做叉积，求面积或者求法线向量或者旋转轴，可以对有符号的面积值判断方向   
 ```
-2d下
-float Vector2::CrossProduct(const Vector2 &v) const
+float Vector2::CrossProduct2d(const Vector2 &v) const
 {
     return (data[0] * v.data[1] - data[1] * v.data[0]);
 }
-以右手坐标系逆时针为正方向，则结果大于0，点v在左侧；小于0在右侧。另外值的绝对值代表了两个向量构成的平行四边形的面积。  
-
-3d下
+// 以右手坐标系逆时针为正方向，则结果大于0，点v在左侧；小于0在右侧。另外值的绝对值代表了两个向量构成的平行四边形的面积。  
 inline void VectorCrossProduct3f(const Point3f p1, const Point3f p2, Point3f vResult)
 {
         vResult[0] = p1[1] * p2[2] - p1[2] * p2[1];
         vResult[1] = p1[2] * p2[0] - p1[0] * p2[2];
         vResult[2] = p1[0] * p2[1] - p1[1] * p2[0];
 }
-p1到p2叉积得到的仍是一个向量，这个向量垂直于p1和p2确定的平面，即得到平面的法向量   
+// p1到p2叉积得到的仍是一个向量，这个向量垂直于p1和p2确定的平面，即得到平面的法向量
 ```
-
 
 **2. 矩阵变换**  
 
