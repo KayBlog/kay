@@ -29,3 +29,4 @@
 8. [点云处理](cg/point_cloud.md)    
 9. [多边形扫描](cg/polygon_raster.md)   
 10. [泰森多边形和德奈诺三角化](cg/voronoi.md)   
+11. [近似凸分解](cg/hacd.md)    
