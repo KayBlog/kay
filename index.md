@@ -29,7 +29,7 @@ Email:**kay-ang@qq.com**
 **第三阶段：**  
 
 8. [数值分析](numeric_analysis/index.md)  
-9. [数学相关](math/index.md)  
+9. [数学和凸优化](math/index.md)   
 10. [机器学习](machine_learning/index.md)  
 11. [图论与动态规划](graph/index.md)  
 12. [图像处理](image_process.md)  
