@@ -22,7 +22,7 @@ Thank you.
 9. [数学和凸优化](math/index.md)   
 10. [机器学习](machine_learning/index.md)  
 11. [图论与动态规划](graph/index.md)  
-12. [图像处理](image_process.md)  
+12. [图像处理](image_process/index.md)  
 
 **第四阶段：**  
 
