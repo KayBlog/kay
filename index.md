@@ -3,6 +3,11 @@ Welcome to Kay's Blog, I will show some useful infomation to you.
 If you have some questions about my blog, please contact with me.
 Thank you.
 
+对技术的热爱，本人现计划将所知的知识点串起来写在这里。   
+技术兴趣点：游戏引擎，机器学习和机器视觉。   
+技术不仅仅是学会使用库代码调配参数而不知其基内部框架和原理。   
+**错误之处，请知会和指点，谢谢**      
+
 **第一阶段：**  
 
 1. [数据结构与算法](datastructures/index.md)  
