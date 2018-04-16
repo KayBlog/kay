@@ -311,3 +311,274 @@ final class ExpandingSimplex {
     }
 }
 ```
+
+
+MPR(Minkowski Portal Refinement ):  
+```
+using System.Collections;
+using System.Collections.Generic;
+
+    //make the associated dot / cross products easier to read
+    public static class Vector3Extensions
+    {
+        public static float Dot(this Vector3 op1, Vector3 op2)
+        {
+            return Vector3.Dot(op1, op2);
+        }
+
+        public static Vector3 Cross(this Vector3 op1, Vector3 op2)
+        {
+            return Vector3.Cross(op1, op2);
+        }
+    }
+
+public static class MPRCollision {
+
+    //points used by the algorithm
+    static Vector3 v0;
+    static Vector3 v1;
+    static Vector3 v2;
+    static Vector3 v3;
+    static Vector3 v4;
+
+    //if the difference in iteration is less than this,
+    //we aren't going to (can't!) converge.
+    static float kCollideEpsilon = 1e-3f;
+
+    static Vector3 GetSupport(List<Vector3> shape, Vector3 direction)
+    {
+
+
+        Vector3 point = shape[0];
+
+        for(int i = 1; i < shape.Count; i++)
+        {
+            //is the current point more "direction" than our result point?
+            if ( (shape[i] - point).Dot(direction) > 0 )
+            {
+                //new result point
+                point = shape[i];
+            }
+        }
+        return point;
+
+    }
+
+
+    public static bool CheckCollide(List<Vector3> shape1, List<Vector3> shape2,
+                                    Vector3 center1, Vector3 center2, ref Vector3 penVector)
+    {
+        //holding variables
+        Vector3 n = Vector3.zero;
+        Vector3 swap = Vector3.zero;
+
+        // v0 = center of Minkowski sum
+        v0 = center2 - center1;
+
+        // Avoid case where centers overlap -- any direction is fine in this case
+        if (v0 == Vector3.zero) v0 = new Vector3(0, 0.00001f, 0);
+
+        // v1 = support in direction of origin
+        n = -v0;
+
+        //get the differnce of the minkowski sum
+        Vector3 v11 = GetSupport(shape1, -n);
+        Vector3 v12 = GetSupport(shape2, n);
+
+        v1 = v12 - v11;
+
+        //if the support point is not in the direction of the origin
+        if (v1.Dot(n) <= 0)
+        {
+            //return the direction of the origin, because we're not colliding
+            if (penVector != null) penVector = n;
+            return false;
+        }
+
+        // v2 - support perpendicular to v1,v0
+        n = v1.Cross(v0);
+        if (n == Vector3.zero)
+        {
+            //v1 and v0 are parallel, which means 
+            //the origin is within the first portal?
+            n = v1 - v0;
+
+            if (penVector != null) penVector = n.normalized;
+            return true;
+        }
+
+        //no early outs yet, so get the new support point
+        Vector3 v21 = GetSupport(shape1, -n);
+        Vector3 v22 = GetSupport(shape2, n);
+        v2 = v22 - v21;
+
+        if (v2.Dot(n) <= 0)
+        {
+            //can't reach the origin in this direction, ergo, no collision
+            if (penVector != null) penVector = n;
+            return false;
+        }
+
+        // Determine whether origin is on + or - side of plane (v1,v0,v2)
+        //tests linesegments v0v1 and v0v2
+        n = (v1 - v0).Cross(v2 - v0);
+        float dist = n.Dot(v0);
+
+        // If the origin is on the - side of the plane, reverse the direction of the plane
+        if (dist > 0)
+        {
+            //swap the winding order of v1 and v2
+            swap = v1;
+            v1 = v2;
+            v2 = swap;
+
+            //swap the winding order of v11 and v12
+            swap = v12;
+            v12 = v11;
+            v11 = swap;
+
+            //swap the winding order of v11 and v12
+            swap = v22;
+            v22 = v21;
+            v21 = swap;
+
+            //and swap the plane normal
+            n = -n;
+        }
+
+
+        ///
+        // Phase One: Identify a portal
+
+        while (true)
+        {
+            // Obtain the support point in a direction perpendicular to the existing plane
+            // Note: This point is guaranteed to lie off the plane
+            Vector3 v31 = GetSupport(shape1, -n);
+            Vector3 v32 = GetSupport(shape2, n); 
+            v3 = v32 - v31;
+
+            if (v3.Dot(n) <= 0)
+            {
+                //can't enclose the origin within our tetrahedron
+                if (penVector != null) penVector = n;
+                return false;
+            }
+
+            // If origin is outside (v1,v0,v3), then eliminate v2 and loop
+            if (v1.Cross(v3).Dot(v0) <= 0)
+            {
+                //failed to enclose the origin, adjust points;
+                v2 = v3;
+                v21 = v31;
+                v22 = v32;
+                n = (v1 - v0).Cross(v3 - v0);
+                continue;
+            }
+
+            // If origin is outside (v3,v0,v2), then eliminate v1 and loop
+            if (v3.Cross(v2).Dot(v0) < 0)
+            {
+                //failed to enclose the origin, adjust points;
+                v1 = v3;
+                v11 = v31;
+                v12 = v32;
+                n = (v3 - v0).Cross(v2 - v0);
+                continue;
+            }
+
+
+            bool hit = false;
+
+            ///
+            // Phase Two: Refine the portal
+
+            int phase2 = 0;
+
+            // We are now inside of a wedge...
+            while (phase2 < 20)
+            {
+                phase2++;
+
+                // Compute normal of the wedge face
+                n = (v2 - v1).Cross(v3 - v1);
+
+                n.Normalize();
+
+                // Compute distance from origin to wedge face
+                float d = n.Dot(v1);
+
+                // If the origin is inside the wedge, we have a hit
+                if (d >= 0 && !hit )
+                {
+                    if (penVector != null) penVector = n;
+                    hit = true;
+                }
+
+
+                // Find the support point in the direction of the wedge face
+                Vector3 v41 = GetSupport(shape1, -n);
+                Vector3 v42 = GetSupport(shape2, n);
+                v4 = v42 - v41;
+
+
+                float delta = (v4 - v3).Dot(n);
+                float separation = -(v4.Dot(n));
+
+                if (delta <= kCollideEpsilon || separation >= 0)
+                {
+                    //Debug.Log("Non-convergance detected");    
+                    if (penVector != null) penVector = n;
+                    return hit;
+                }
+
+                // Compute the tetrahedron dividing face (v4,v0,v1)
+                float d1 = v4.Cross(v1).Dot(v0);
+
+                // Compute the tetrahedron dividing face (v4,v0,v2)
+                float d2 = v4.Cross(v2).Dot(v0);
+
+                // Compute the tetrahedron dividing face (v4,v0,v3)
+                float d3 = v4.Cross(v3).Dot(v0);
+
+                if (d1 < 0)
+                {
+                    if (d2 < 0)
+                    {
+                        // Inside d1 & inside d2 ==> eliminate v1
+                        v1 = v4;
+                        v11 = v41;
+                        v12 = v42;
+                    }
+                    else
+                    {
+                        // Inside d1 & outside d2 ==> eliminate v3
+                        v3 = v4;
+                        v31 = v41;
+                        v32 = v42;
+                    }
+                }
+                else
+                {
+                    if (d3 < 0)
+                    {
+                        // Outside d1 & inside d3 ==> eliminate v2
+                        v2 = v4;
+                        v21 = v41;
+                        v22 = v42;
+                    }
+                    else
+                    {
+                        // Outside d1 & outside d3 ==> eliminate v1
+                        v1 = v4;
+                        v11 = v41;
+                        v12 = v42;
+                    }
+                }
+            }   
+
+            return false;
+        }
+    }
+}
+```
