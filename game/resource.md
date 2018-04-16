@@ -9,3 +9,6 @@
 另外，理解一张图是很重要的：   
 ![Unity 资源管理](images/assetbundle.jpg)   
 
+转载一篇博文：[链接](https://blog.csdn.net/poem_of_sunshine/article/details/46986373)   
+
+
