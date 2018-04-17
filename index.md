@@ -43,6 +43,8 @@ Thank you.
 3. Gameplay3D(游戏引擎)   
 4. Recast(导航网格)  
 5. GeometricTools(几何工具)    
+6. HACD(近似凸分解)    
+7. FBX SDK(fbx模型)   
  
 涉及到的书籍和论文较多，在这里不做介绍，有需要的可以联系我。      
 
