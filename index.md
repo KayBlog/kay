@@ -41,7 +41,8 @@ Thank you.
 1. OpenSteer(游戏AI)   
 2. Bullet(物理引擎)   
 3. Gameplay3D(游戏引擎)   
-4. Recast(导航网格)   
+4. Recast(导航网格)  
+5. GeometricTools(几何工具)    
  
 涉及到的书籍和论文较多，在这里不做介绍，有需要的可以联系我。      
 
