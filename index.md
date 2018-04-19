@@ -52,10 +52,3 @@ Thank you.
 
 Email:**kay-ang@qq.com**  
 
-## Resume  
-
-[1. 中文](resume/jianli.png)   
-
-[2. 英文](resume/resume.png)   
-
-[3. PDF CV](resume/kay.pdf)  
