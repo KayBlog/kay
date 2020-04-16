@@ -9,7 +9,7 @@
 
 **进阶**  
 
-5. [物理引擎](physics_engine/index.md)  
+5. [物理引擎](physic_engine/index.md)  
 6. [Gameplay3D](gameplayer3d/index.md)  
 
 **应用**  
