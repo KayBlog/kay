@@ -13,7 +13,9 @@
 6. [Gameplay3D](gameplayer3d/index.md)  
 
 **应用**  
+
 7. [游戏开发](game_develop/index.md)
+8. [游戏优化](game_optimize/index.md)
 
 Email:**kay-ang@qq.com**  
 
