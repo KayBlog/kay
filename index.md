@@ -20,7 +20,7 @@
 
 
 2020.04.22 Add [刚体无约束运动](physics/non_constraint/non_constraint.md)
-2020.04.22 Add [刚体无约束运动](physics/collision_constraint/collision_constraint.md)
+2020.04.22 Add [刚体碰撞约束运动](physics/collision_constraint/collision_constraint.md)
 
 Email:**kay-ang@qq.com**  
 
