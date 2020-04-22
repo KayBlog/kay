@@ -10,3 +10,4 @@
 7. [Buff机制](buff/index.md)
 8. [同步](game_sync/index.md)
 9. [输入系统](input_system/index.md)
+10. [数值序列化和反序列化](data/index.md)
