@@ -1,0 +1,11 @@
+[<< 返回到主页](../index.md)
+
+1. [概念](define/index.md)
+2. [分布](distribution/index.md)
+3. [估计](estimation/index.md)
+4. [主成分分析](pca/index.md)
+5. [模特卡罗](monte_carlo/index.md)
+6. [混合高斯](gmm/index.md)
+7. [隐马尔科夫](hmm/index.md)
+8. [分类](classify/index.md)
+9. [聚类](cluster/index.md)
